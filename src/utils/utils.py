@@ -54,7 +54,7 @@ COLOR_MAP = {
 
 import threading
 def delete_model(model_name):
-    """Tìm và xóa tất cả các model có chứa model_name trong tên một cách song song."""
+    """Xóa tất cả model có chứa model_name song song nhưng có delay tránh crash Gazebo."""
     rospy.wait_for_service('/gazebo/get_world_properties')
     try:
         get_world_properties = rospy.ServiceProxy('/gazebo/get_world_properties', GetWorldProperties)
@@ -69,25 +69,25 @@ def delete_model(model_name):
         delete_srv = rospy.ServiceProxy('/gazebo/delete_model', DeleteModel)
 
         def delete_task(model):
-            """Xóa một model."""
+            """Xóa một model với delay."""
             try:
                 delete_srv(model)
                 rospy.loginfo(f"Deleted model: {model}")
+                rospy.sleep(0.05)  # 🔹 Thêm delay nhỏ để Gazebo cập nhật
             except rospy.ServiceException as e:
                 rospy.logwarn(f"Failed to delete model {model}: {e}")
 
-        # Khởi tạo các luồng xóa model song song
+        # Xóa model song song
         threads = []
         for model in models_to_delete:
             thread = threading.Thread(target=delete_task, args=(model,))
             threads.append(thread)
             thread.start()
 
-        # Chờ tất cả các luồng kết thúc
         for thread in threads:
             thread.join()
 
-        rospy.sleep(0.02)  # Chờ Gazebo cập nhật trạng thái
+        rospy.sleep(0.2)  # 🔹 Chờ thêm chút sau khi xóa
 
     except rospy.ServiceException as e:
         rospy.logerr(f"Failed to get world properties: {e}")
@@ -149,7 +149,7 @@ def spawn_marker_sequence(points, base_model_name='marker_sphere', color='red'):
         spawn_marker(x, y, z, model_name, color)
 
 
-def spawn_marker_sequence_parallel(points, model_name='marker_sphere', color='red'):
+def spawn_marker_sequence_parallel(points, model_name='marker_sphere', color='red', size=0.05):
     """
     Vẽ toàn bộ chuỗi điểm như một model duy nhất thay vì từng marker riêng lẻ.
     
@@ -176,7 +176,7 @@ def spawn_marker_sequence_parallel(points, model_name='marker_sphere', color='re
           <visual name="visual_{i}">
             <geometry>
               <sphere>
-                <radius>0.05</radius>  <!-- Kích thước điểm -->
+                <radius>{size}</radius>  <!-- Kích thước điểm -->
               </sphere>
             </geometry>
             <material>

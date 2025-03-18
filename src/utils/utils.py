@@ -42,22 +42,6 @@ def model_exists(model_name):
         rospy.logwarn(f"Failed to get world properties: {e}")
         return False  # Nếu không thể kiểm tra, giả định model không tồn tại
 
-def delete_model(model_name):
-    """ Xóa model khỏi Gazebo nếu nó tồn tại """
-    if model_exists(model_name):
-        rospy.wait_for_service('/gazebo/delete_model')
-        try:
-            delete_srv = rospy.ServiceProxy('/gazebo/delete_model', DeleteModel)
-            delete_srv(model_name)
-            rospy.loginfo(f"Deleted model: {model_name}")
-        except rospy.ServiceException as e:
-            rospy.logwarn(f"Failed to delete model {model_name}: {e}")
-    else:
-        rospy.loginfo(f"Model {model_name} does not exist. No need to delete.")
-
-    # Chờ 2s để đảm bảo Gazebo cập nhật trạng thái
-    rospy.sleep(2)
-
 COLOR_MAP = {
     "red": (1, 0, 0, 1),
     "green": (0, 1, 0, 1),
@@ -67,20 +51,48 @@ COLOR_MAP = {
     "white": (1, 1, 1, 1),
     "black": (0, 0, 0, 1),
 }
-def spawn_marker(x, y, z, color="red"):
-    model_name = "marker_sphere"
 
-    # Xóa model nếu đã tồn tại
-    delete_model(model_name)
+def delete_model(model_name):
+    """Tìm và xóa tất cả các model có chứa model_name trong tên."""
+    rospy.wait_for_service('/gazebo/get_world_properties')
+    try:
+        get_world_properties = rospy.ServiceProxy('/gazebo/get_world_properties', GetWorldProperties)
+        world_properties = get_world_properties()
+        models_to_delete = [m for m in world_properties.model_names if model_name in m]
+
+        if not models_to_delete:
+            rospy.loginfo(f"No models matching '{model_name}' found.")
+            return
+
+        rospy.wait_for_service('/gazebo/delete_model')
+        delete_srv = rospy.ServiceProxy('/gazebo/delete_model', DeleteModel)
+
+        for model in models_to_delete:
+            try:
+                delete_srv(model)
+                rospy.loginfo(f"Deleted model: {model}")
+            except rospy.ServiceException as e:
+                rospy.logwarn(f"Failed to delete model {model}: {e}")
+
+        # Chờ 2s để Gazebo cập nhật trạng thái
+        rospy.sleep(0.02)
+
+    except rospy.ServiceException as e:
+        rospy.logerr(f"Failed to get world properties: {e}")
+
+def spawn_marker(x, y, z, model_name='marker_sphere', color='red'):
+    """Xóa tất cả marker cũ và vẽ một marker mới trong Gazebo."""
+    # delete_model(model_name)
 
     # Chờ dịch vụ spawn của Gazebo
     rospy.wait_for_service('/gazebo/spawn_sdf_model')
     spawn_model = rospy.ServiceProxy('/gazebo/spawn_sdf_model', SpawnModel)
     color_rgba = COLOR_MAP.get(color.lower(), (1, 0, 0, 1))  # Mặc định là màu đỏ
+
     # Định nghĩa SDF chỉ có visual, không có va chạm
     sphere_sdf = f"""<?xml version="1.0"?>
     <sdf version="1.6">
-      <model name="marker_sphere">
+      <model name="{model_name}">
         <static>true</static>  <!-- Không bị tác động bởi trọng lực -->
         <link name="visual_link">
           <visual name="visual">
@@ -106,10 +118,23 @@ def spawn_marker(x, y, z, color="red"):
 
     try:
         spawn_model(model_name, sphere_sdf, "", pose, "world")
-        rospy.loginfo(f"Spawned marker in Gazebo successfully at ({x}, {y}, {z})")
+        rospy.loginfo(f"Spawned marker '{model_name}' in Gazebo successfully at ({x}, {y}, {z})")
     except rospy.ServiceException as e:
-        rospy.logerr("Failed to spawn marker: %s" % e)
+        rospy.logerr(f"Failed to spawn marker '{model_name}': {e}")
+        
+def spawn_marker_sequence(points, base_model_name='marker_sphere', color='red'):
+    """
+    Vẽ một chuỗi các điểm (x, y, z) trong Gazebo bằng cách spawn nhiều marker.
+    
+    :param points: Danh sách các tọa độ [(x1, y1, z1), (x2, y2, z2), ...]
+    :param base_model_name: Tên cơ sở của marker (sẽ được đánh số để tránh trùng)
+    :param color: Màu của marker
+    """
+    delete_model(base_model_name)  # Xóa tất cả các marker có cùng tên gốc
 
+    for i, (x, y, z) in enumerate(points):
+        model_name = f"{base_model_name}_{i}"  # Tạo tên duy nhất cho mỗi marker
+        spawn_marker(x, y, z, model_name, color)
 
 if __name__ == "__main__":
     rospy.init_node("reset_robot_node")

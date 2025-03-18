@@ -7,8 +7,9 @@ import random
 import math
 from python_utils.printer import Printer
 from python_utils.plotter import Plotter
-from utils.utils import reset_robot, spawn_marker
+from utils.utils import reset_robot, spawn_marker, spawn_marker_sequence
 import time
+import numpy as np
 
 global_printer = Printer()
 global_plotter = Plotter()
@@ -48,7 +49,16 @@ def publish_trajectories(data):
             print('     impact_point: ', impact_point_no_t)
             # 1. Setup initial conditions before publishing trajectory
             reset_robot(init_robot_pos[0], init_robot_pos[1], init_robot_pos[2], 0, 0, angle)
-            spawn_marker(impact_point_z_up[0], impact_point_z_up[1], impact_point_z_up[2], color='green')
+            if DATA_WITH_Y_UP:
+                traj_show_gzb = [[p[1], -p[3], p[2]] for p in traj]
+                traj_show_gzb = np.array(traj_show_gzb)
+                print(traj_show_gzb.shape)
+                print(1); input()
+            else:
+                traj_show_gzb = traj[:, 1:]
+            traj_show_gzb = np.array(traj_show_gzb)
+            print(traj_show_gzb.shape)
+            spawn_marker_sequence(traj_show_gzb, color='green', base_model_name='real trajectory')
             # 2. Start to publish trajectory, step by step
             # last_pub_time = time.time()
             last_pub_time = rospy.Time.now().to_sec()

@@ -7,7 +7,7 @@ import random
 import math
 from python_utils.printer import Printer
 from python_utils.plotter import Plotter
-from utils.utils import reset_robot, spawn_marker, spawn_marker_sequence
+from utils.utils import reset_robot, spawn_marker_sequence_parallel
 import time
 import numpy as np
 
@@ -58,7 +58,7 @@ def publish_trajectories(data):
                 traj_show_gzb = traj[:, 1:]
             traj_show_gzb = np.array(traj_show_gzb)
             print(traj_show_gzb.shape)
-            spawn_marker_sequence(traj_show_gzb, color='green', base_model_name='real trajectory')
+            spawn_marker_sequence_parallel(traj_show_gzb, model_name="real_IP", color="green")
             # 2. Start to publish trajectory, step by step
             # last_pub_time = time.time()
             last_pub_time = rospy.Time.now().to_sec()

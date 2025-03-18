@@ -43,17 +43,18 @@ def model_exists(model_name):
         return False  # Nếu không thể kiểm tra, giả định model không tồn tại
 
 COLOR_MAP = {
-    "red": (1, 0, 0, 1),
-    "green": (0, 1, 0, 1),
-    "blue": (0, 0, 1, 1),
-    "yellow": (1, 1, 0, 1),
-    "purple": (0.5, 0, 0.5, 1),
-    "white": (1, 1, 1, 1),
-    "black": (0, 0, 0, 1),
+    "red": (1, 0, 0, 0.5),
+    "green": (0, 1, 0, 0.5),
+    "blue": (0, 0, 1, 0.5),
+    "yellow": (1, 1, 0, 0.5),
+    "purple": (0.5, 0, 0.5, 0.5),
+    "white": (1, 1, 1, 0.5),
+    "black": (0, 0, 0, 0.5),
 }
 
+import threading
 def delete_model(model_name):
-    """Tìm và xóa tất cả các model có chứa model_name trong tên."""
+    """Tìm và xóa tất cả các model có chứa model_name trong tên một cách song song."""
     rospy.wait_for_service('/gazebo/get_world_properties')
     try:
         get_world_properties = rospy.ServiceProxy('/gazebo/get_world_properties', GetWorldProperties)
@@ -67,15 +68,26 @@ def delete_model(model_name):
         rospy.wait_for_service('/gazebo/delete_model')
         delete_srv = rospy.ServiceProxy('/gazebo/delete_model', DeleteModel)
 
-        for model in models_to_delete:
+        def delete_task(model):
+            """Xóa một model."""
             try:
                 delete_srv(model)
                 rospy.loginfo(f"Deleted model: {model}")
             except rospy.ServiceException as e:
                 rospy.logwarn(f"Failed to delete model {model}: {e}")
 
-        # Chờ 2s để Gazebo cập nhật trạng thái
-        rospy.sleep(0.02)
+        # Khởi tạo các luồng xóa model song song
+        threads = []
+        for model in models_to_delete:
+            thread = threading.Thread(target=delete_task, args=(model,))
+            threads.append(thread)
+            thread.start()
+
+        # Chờ tất cả các luồng kết thúc
+        for thread in threads:
+            thread.join()
+
+        rospy.sleep(0.02)  # Chờ Gazebo cập nhật trạng thái
 
     except rospy.ServiceException as e:
         rospy.logerr(f"Failed to get world properties: {e}")
@@ -135,6 +147,58 @@ def spawn_marker_sequence(points, base_model_name='marker_sphere', color='red'):
     for i, (x, y, z) in enumerate(points):
         model_name = f"{base_model_name}_{i}"  # Tạo tên duy nhất cho mỗi marker
         spawn_marker(x, y, z, model_name, color)
+
+
+def spawn_marker_sequence_parallel(points, model_name='marker_sphere', color='red'):
+    """
+    Vẽ toàn bộ chuỗi điểm như một model duy nhất thay vì từng marker riêng lẻ.
+    
+    :param points: Danh sách các tọa độ [(x1, y1, z1), (x2, y2, z2), ...]
+    :param model_name: Tên của model duy nhất
+    :param color: Màu sắc của các điểm
+    """
+    delete_model(model_name)  # Xóa model cũ nếu tồn tại
+    
+    rospy.wait_for_service('/gazebo/spawn_sdf_model')
+    spawn_model = rospy.ServiceProxy('/gazebo/spawn_sdf_model', SpawnModel)
+    color_rgba = COLOR_MAP.get(color.lower(), (1, 0, 0, 1))  # Mặc định là đỏ
+
+    # Bắt đầu SDF Model
+    sdf_content = f"""<?xml version="1.0"?>
+    <sdf version="1.6">
+      <model name="{model_name}">
+        <static>true</static>"""  # Model tĩnh, không bị trọng lực ảnh hưởng
+
+    # Thêm từng điểm dưới dạng visual element
+    for i, (x, y, z) in enumerate(points):
+        sdf_content += f"""
+        <link name="point_{i}">
+          <visual name="visual_{i}">
+            <geometry>
+              <sphere>
+                <radius>0.05</radius>  <!-- Kích thước điểm -->
+              </sphere>
+            </geometry>
+            <material>
+              <ambient>{color_rgba[0]} {color_rgba[1]} {color_rgba[2]} {color_rgba[3]}</ambient>
+              <diffuse>{color_rgba[0]} {color_rgba[1]} {color_rgba[2]} {color_rgba[3]}</diffuse>
+            </material>
+          </visual>
+          <pose>{x} {y} {z} 0 0 0</pose>  <!-- Đặt vị trí -->
+        </link>"""
+
+    # Kết thúc SDF Model
+    sdf_content += """
+      </model>
+    </sdf>"""
+
+    # Spawn model duy nhất
+    pose = Pose()
+    try:
+        spawn_model(model_name, sdf_content, "", pose, "world")
+        rospy.loginfo(f"Spawned trajectory model '{model_name}' successfully with {len(points)} points!")
+    except rospy.ServiceException as e:
+        rospy.logerr(f"Failed to spawn trajectory model '{model_name}': {e}")
 
 if __name__ == "__main__":
     rospy.init_node("reset_robot_node")

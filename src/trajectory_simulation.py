@@ -7,7 +7,7 @@ import random
 import math
 from python_utils.printer import Printer
 from python_utils.plotter import Plotter
-from utils.utils import reset_robot, spawn_marker_sequence_parallel
+from utils.utils import reset_robot, spawn_marker_sequence_parallel, spawn_marker
 import time
 import numpy as np
 
@@ -21,6 +21,20 @@ data_mother_dir = os.getenv('NAE_DATASET20')
 object_name = 'ball'
 data_dir = os.path.join(data_mother_dir, object_name, '3-data-augmented', 'data_plit')
 
+def find_point_A(x_B, y_B, alpha_degree, d):
+    """
+    Tính tọa độ điểm A từ điểm B, góc alpha và khoảng cách d.
+
+    :param x_B: Tọa độ x của điểm B
+    :param y_B: Tọa độ y của điểm B
+    :param alpha: Góc của tia AB so với trục OX (đơn vị độ)
+    :param d: Khoảng cách từ A đến B
+    :return: (x_A, y_A) tọa độ của điểm A
+    """
+    alpha_rad = math.radians(alpha_degree)  # Chuyển độ sang radian
+    x_A = x_B - d * math.cos(alpha_rad)
+    y_A = y_B - d * math.sin(alpha_rad)
+    return [x_A, y_A]
 
 def publish_trajectories(data):
     rospy.init_node('pose_publisher', anonymous=True)
@@ -33,22 +47,25 @@ def publish_trajectories(data):
                 raise ValueError('Trajectory point must have 4 dimensions (t, x, y, z)')
             global_printer.print_green(f'\nPublishing trajectory {traj_idx}. ENTER to continue...')
             impact_point_no_t = traj[-1, 1:]
-            dist_random_x = random.uniform(-MAX_CATCH_DIST, MAX_CATCH_DIST)
-            dist_random_y = math.sqrt(MAX_CATCH_DIST**2 - dist_random_x**2)
             if DATA_WITH_Y_UP:
                 impact_point_z_up = [impact_point_no_t[0], -impact_point_no_t[2], impact_point_no_t[1]]
             else:
                 impact_point_z_up = impact_point_no_t
-            init_robot_pos = (impact_point_z_up[0]+dist_random_x, impact_point_z_up[1]+dist_random_y, 0.45)
-            # calculate orientation of robot to head to impact point
-            angle = math.atan2(-dist_random_y, -dist_random_x)
+            # dist_random_x = random.uniform(-MAX_CATCH_DIST, MAX_CATCH_DIST)
+            # dist_random_y = math.sqrt(MAX_CATCH_DIST**2 - dist_random_x**2)
+            # init_robot_pos = (impact_point_z_up[0]+dist_random_x, impact_point_z_up[1]+dist_random_y, 0.45)
+            # # calculate orientation of robot to head to impact point
+            # angle = math.atan2(-dist_random_y, -dist_random_x)
+
+            alpha_degree = random.uniform(-20, 20)
+            init_robot_pos = find_point_A(impact_point_z_up[0], impact_point_z_up[1], alpha_degree=alpha_degree, d=MAX_CATCH_DIST)
 
             global_printer.print_yellow(f'  ENTER to reset ROBOT to initial position: {init_robot_pos[0]}, {init_robot_pos[1]}'); input()
             print('     Data points: ', len(traj))
             print('     Estimated time: ', len(traj)/120)
             print('     impact_point: ', impact_point_no_t)
             # 1. Setup initial conditions before publishing trajectory
-            reset_robot(init_robot_pos[0], init_robot_pos[1], init_robot_pos[2], 0, 0, angle)
+            reset_robot(x_init = init_robot_pos[0], y_init = init_robot_pos[1])
             if DATA_WITH_Y_UP:
                 traj_show_gzb = [[p[1], -p[3], p[2]] for p in traj]
                 traj_show_gzb = np.array(traj_show_gzb)
@@ -61,7 +78,7 @@ def publish_trajectories(data):
             # last_pub_time = time.time()
             last_pub_time = rospy.Time.now().to_sec()
             # for point in tqdm(traj):
-            for point in traj:
+            for p_idx, point in enumerate(traj):
                 pose = PoseStamped()
                 pose.header.stamp = rospy.Time.now()    # Use real time instead of trajectory time
                 pose.header.frame_id = "world"  # Thay đổi frame_id nếu cần
@@ -78,6 +95,7 @@ def publish_trajectories(data):
                 pose.pose.orientation.w = 1.0
 
                 pub.publish(pose)
+                # spawn_marker(x=point[1], y=-point[3], z=point[2], model_name=f"Object_{p_idx}", color="blue")
                 rate.sleep()
                 # dt = time.time() - last_pub_time
                 dt = rospy.Time.now().to_sec() - last_pub_time

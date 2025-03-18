@@ -7,14 +7,16 @@ import random
 import math
 from python_utils.printer import Printer
 from python_utils.plotter import Plotter
-from rocat_sim.src.utils.utils import reset_robot, spawn_marker_sequence_parallel, spawn_marker
+from rocat_sim.src.utils.utils import reset_robot, spawn_marker_sequence_parallel, publish_points, publish_special_point, send_bool_signal_srv
 import time
 import numpy as np
+from visualization_msgs.msg import Marker
+from geometry_msgs.msg import Point, PoseStamped
 
 global_printer = Printer()
 global_plotter = Plotter()
 
-MAX_CATCH_DIST = 0.4
+MAX_CATCH_DIST = 0.6
 DATA_WITH_Y_UP = True   # only apply to simulate in gazebo, not apply for data feed to model
 
 data_mother_dir = os.getenv('NAE_DATASET20')
@@ -74,9 +76,24 @@ def publish_trajectories(data):
                 traj_show_gzb = traj[:, 1:]
             traj_show_gzb = np.array(traj_show_gzb)
             spawn_marker_sequence_parallel(traj_show_gzb, model_name="real_IP", color="green")
+            traj_pub = rospy.Publisher("/flying_object_trajectory", Marker, queue_size=10)
+            publish_points(points_pub=traj_pub, points=traj_show_gzb)
             # sleep 2 seconds
             time.sleep(2)
-            # 2. Start to publish trajectory, step by step
+
+            # 2. trigger Go1, pub to topic /mocap_pose_topic/chip_star_pose PoseStamped
+            trigger_pub = rospy.Publisher("/mocap_pose_topic/chip_star_pose", PoseStamped, queue_size=100)
+            trigger_pose = PoseStamped()
+            trigger_pose.header.stamp = rospy.Time.now()
+            trigger_pose.header.frame_id = "world"
+            trigger_pose.pose.orientation.w = 1.0
+            trigger_pub.publish(trigger_pose)
+
+            # trigger impact checker
+            send_bool_signal_srv(True)
+            time.sleep(1)
+            
+            # 3. Start to publish trajectory, step by step
             # last_pub_time = time.time()
             last_pub_time = rospy.Time.now().to_sec()
             # for point in tqdm(traj):
@@ -98,6 +115,9 @@ def publish_trajectories(data):
 
                 pub.publish(pose)
                 # spawn_marker(x=point[1], y=-point[3], z=point[2], model_name=f"Object_{p_idx}", color="blue")
+                # flying_object_pub = rospy.Publisher("/flying_object", Marker, queue_size=10)
+                flying_object_pub = rospy.Publisher("/flying_object", PoseStamped, queue_size=10)
+                publish_special_point(x=point[1], y=-point[3], z=point[2], special_point_pub=flying_object_pub)
                 rate.sleep()
                 # dt = time.time() - last_pub_time
                 dt = rospy.Time.now().to_sec() - last_pub_time

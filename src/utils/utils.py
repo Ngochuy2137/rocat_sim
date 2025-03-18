@@ -4,7 +4,7 @@ from gazebo_msgs.srv import SetModelState, SetModelStateRequest
 import tf.transformations
 from gazebo_msgs.srv import SpawnModel, DeleteModel, SetModelState, GetWorldProperties
 from gazebo_msgs.msg import ModelState
-from geometry_msgs.msg import Pose
+from geometry_msgs.msg import Pose, PoseStamped
 
 def reset_robot(x_init=0.0, y_init=0.0, z_init=0.45, roll_init=0.0, pitch_init=0.0, yaw_init=0.0):
     rospy.wait_for_service("/gazebo/set_model_state")
@@ -254,6 +254,93 @@ def spawn_marker_sequence_parallel(points, model_name='marker_sphere', color='re
 #         thread.join()
 
 #     rospy.sleep(0.01)  # 🔹 Đảm bảo tất cả model đã spawn xong
+
+
+import rospy
+from visualization_msgs.msg import Marker
+from geometry_msgs.msg import Point
+def publish_points(points, points_pub: rospy.Publisher):
+    """
+    Publish danh sách điểm lên RViz.
+    :param points: List các tuple (x, y, z)
+    """
+    marker = Marker()
+    marker.header.frame_id = "world"
+    marker.header.stamp = rospy.Time.now()
+    marker.ns = "flying_object_trajectory"
+    marker.id = 0
+    marker.type = Marker.SPHERE_LIST
+    marker.action = Marker.ADD
+    marker.scale.x = 0.05  # Kích thước điểm
+    marker.scale.y = 0.05
+    marker.color.r = 0.0
+    marker.color.g = 1.0  # Màu xanh lá cây
+    marker.color.b = 0.0
+    marker.color.a = 0.5  # Độ trong suốt
+    
+    # Thêm các điểm vào marker
+    for x, y, z in points:
+        p = Point()
+        p.x = x
+        p.y = y
+        p.z = z
+        marker.points.append(p)
+
+    points_pub.publish(marker)
+    rospy.loginfo("Published {} points to RViz".format(len(points)))
+
+# def publish_special_point(x, y, z, special_point_pub: rospy.Publisher):
+#     """
+#     Publish một điểm đặc biệt lên RViz với màu đỏ.
+#     """
+#     marker = Marker()
+#     marker.header.frame_id = "world"
+#     marker.header.stamp = rospy.Time.now()
+#     marker.ns = "flying_object"
+#     marker.id = 1
+#     marker.type = Marker.SPHERE
+#     marker.action = Marker.ADD
+#     marker.pose.position.x = x
+#     marker.pose.position.y = y
+#     marker.pose.position.z = z
+#     marker.scale.x = 0.1  # Kích thước điểm đặc biệt
+#     marker.scale.y = 0.1
+#     marker.scale.z = 0.1
+#     marker.color.r = 0.0  # Màu đỏ
+#     marker.color.g = 0.0
+#     marker.color.b = 1.0
+#     marker.color.a = 1.0  # Độ trong suốt
+
+#     special_point_pub.publish(marker)
+#     # rospy.loginfo("Published special point at ({}, {}, {}) to RViz".format(x, y, z))
+
+def publish_special_point(x, y, z, special_point_pub: rospy.Publisher):
+    """
+    Publish một điểm đặc biệt lên RViz với màu đỏ.
+    """
+    point = PoseStamped()
+    point.header.stamp = rospy.Time.now()
+    point.header.frame_id = "world"
+    point.pose.position.x = x
+    point.pose.position.y = y
+    point.pose.position.z = z
+    point.pose.orientation.w = 1.0
+    special_point_pub.publish(point)
+    rospy.loginfo("Published special point at ({}, {}, {}) to RViz".format(x, y, z))
+
+
+from std_srvs.srv import SetBool, SetBoolRequest, SetBoolResponse
+def send_bool_signal_srv(trigger_value):
+    rospy.wait_for_service('/reset_catching_srv')  # Chờ service sẵn sàng
+    try:
+        service_client = rospy.ServiceProxy('/reset_catching_srv', SetBool)
+        request = SetBoolRequest(data=trigger_value)  # Gửi True/False
+        response = service_client(request)
+
+        rospy.loginfo(f"Response: success={response.success}, message='{response.message}'")
+
+    except rospy.ServiceException as e:
+        rospy.logerr(f"Service call failed: {e}")
 
 if __name__ == "__main__":
     rospy.init_node("reset_robot_node")

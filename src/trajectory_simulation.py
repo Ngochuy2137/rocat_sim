@@ -53,11 +53,9 @@ def publish_trajectories(data):
                 traj_show_gzb = [[p[1], -p[3], p[2]] for p in traj]
                 traj_show_gzb = np.array(traj_show_gzb)
                 print(traj_show_gzb.shape)
-                print(1); input()
             else:
                 traj_show_gzb = traj[:, 1:]
             traj_show_gzb = np.array(traj_show_gzb)
-            print(traj_show_gzb.shape)
             spawn_marker_sequence_parallel(traj_show_gzb, model_name="real_IP", color="green")
             # 2. Start to publish trajectory, step by step
             # last_pub_time = time.time()

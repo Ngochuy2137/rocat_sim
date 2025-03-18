@@ -54,7 +54,7 @@ COLOR_MAP = {
 
 import threading
 def delete_model(model_name):
-    """Xóa tất cả model có chứa model_name song song nhưng có delay tránh crash Gazebo."""
+    """Tìm và xóa tất cả các model có chứa model_name trong tên một cách song song."""
     rospy.wait_for_service('/gazebo/get_world_properties')
     try:
         get_world_properties = rospy.ServiceProxy('/gazebo/get_world_properties', GetWorldProperties)
@@ -69,32 +69,69 @@ def delete_model(model_name):
         delete_srv = rospy.ServiceProxy('/gazebo/delete_model', DeleteModel)
 
         def delete_task(model):
-            """Xóa một model với delay."""
+            """Xóa một model."""
             try:
                 delete_srv(model)
                 rospy.loginfo(f"Deleted model: {model}")
-                rospy.sleep(0.05)  # 🔹 Thêm delay nhỏ để Gazebo cập nhật
             except rospy.ServiceException as e:
                 rospy.logwarn(f"Failed to delete model {model}: {e}")
 
-        # Xóa model song song
+        # Khởi tạo các luồng xóa model song song
         threads = []
         for model in models_to_delete:
             thread = threading.Thread(target=delete_task, args=(model,))
             threads.append(thread)
             thread.start()
 
+        # Chờ tất cả các luồng kết thúc
         for thread in threads:
             thread.join()
-
-        rospy.sleep(0.2)  # 🔹 Chờ thêm chút sau khi xóa
 
     except rospy.ServiceException as e:
         rospy.logerr(f"Failed to get world properties: {e}")
 
-def spawn_marker(x, y, z, model_name='marker_sphere', color='red'):
+# def delete_model(model_name):
+#     """Xóa tất cả model có chứa model_name song song nhưng có delay tránh crash Gazebo."""
+#     rospy.wait_for_service('/gazebo/get_world_properties')
+#     try:
+#         get_world_properties = rospy.ServiceProxy('/gazebo/get_world_properties', GetWorldProperties)
+#         world_properties = get_world_properties()
+#         models_to_delete = [m for m in world_properties.model_names if model_name in m]
+
+#         if not models_to_delete:
+#             rospy.loginfo(f"No models matching '{model_name}' found.")
+#             return
+
+#         rospy.wait_for_service('/gazebo/delete_model')
+#         delete_srv = rospy.ServiceProxy('/gazebo/delete_model', DeleteModel)
+
+#         def delete_task(model):
+#             """Xóa một model với delay."""
+#             try:
+#                 delete_srv(model)
+#                 rospy.loginfo(f"Deleted model: {model}")
+#                 rospy.sleep(0.05)  # 🔹 Thêm delay nhỏ để Gazebo cập nhật
+#             except rospy.ServiceException as e:
+#                 rospy.logwarn(f"Failed to delete model {model}: {e}")
+
+#         # Xóa model song song
+#         threads = []
+#         for model in models_to_delete:
+#             thread = threading.Thread(target=delete_task, args=(model,))
+#             threads.append(thread)
+#             thread.start()
+
+#         for thread in threads:
+#             thread.join()
+
+#         rospy.sleep(0.2)  # 🔹 Chờ thêm chút sau khi xóa
+
+#     except rospy.ServiceException as e:
+#         rospy.logerr(f"Failed to get world properties: {e}")
+
+def spawn_marker(x, y, z, model_name='marker_sphere', color='red', size=0.05):
     """Xóa tất cả marker cũ và vẽ một marker mới trong Gazebo."""
-    # delete_model(model_name)
+    delete_model(model_name)
 
     # Chờ dịch vụ spawn của Gazebo
     rospy.wait_for_service('/gazebo/spawn_sdf_model')
@@ -110,7 +147,7 @@ def spawn_marker(x, y, z, model_name='marker_sphere', color='red'):
           <visual name="visual">
             <geometry>
               <sphere>
-                <radius>0.125</radius>  <!-- Kích thước hình cầu -->
+                <radius>{size}</radius>  <!-- Kích thước hình cầu -->
               </sphere>
             </geometry>
             <material>
@@ -134,19 +171,19 @@ def spawn_marker(x, y, z, model_name='marker_sphere', color='red'):
     except rospy.ServiceException as e:
         rospy.logerr(f"Failed to spawn marker '{model_name}': {e}")
         
-def spawn_marker_sequence(points, base_model_name='marker_sphere', color='red'):
-    """
-    Vẽ một chuỗi các điểm (x, y, z) trong Gazebo bằng cách spawn nhiều marker.
+# def spawn_marker_sequence(points, base_model_name='marker_sphere', color='red'):
+#     """
+#     Vẽ một chuỗi các điểm (x, y, z) trong Gazebo bằng cách spawn nhiều marker.
     
-    :param points: Danh sách các tọa độ [(x1, y1, z1), (x2, y2, z2), ...]
-    :param base_model_name: Tên cơ sở của marker (sẽ được đánh số để tránh trùng)
-    :param color: Màu của marker
-    """
-    delete_model(base_model_name)  # Xóa tất cả các marker có cùng tên gốc
+#     :param points: Danh sách các tọa độ [(x1, y1, z1), (x2, y2, z2), ...]
+#     :param base_model_name: Tên cơ sở của marker (sẽ được đánh số để tránh trùng)
+#     :param color: Màu của marker
+#     """
+#     delete_model(base_model_name)  # Xóa tất cả các marker có cùng tên gốc
 
-    for i, (x, y, z) in enumerate(points):
-        model_name = f"{base_model_name}_{i}"  # Tạo tên duy nhất cho mỗi marker
-        spawn_marker(x, y, z, model_name, color)
+#     for i, (x, y, z) in enumerate(points):
+#         model_name = f"{base_model_name}_{i}"  # Tạo tên duy nhất cho mỗi marker
+#         spawn_marker(x, y, z, model_name, color)
 
 
 def spawn_marker_sequence_parallel(points, model_name='marker_sphere', color='red', size=0.05):
@@ -158,6 +195,7 @@ def spawn_marker_sequence_parallel(points, model_name='marker_sphere', color='re
     :param color: Màu sắc của các điểm
     """
     delete_model(model_name)  # Xóa model cũ nếu tồn tại
+    rospy.sleep(1)  # Chờ Gazebo cập nhật trạng thái
     
     rospy.wait_for_service('/gazebo/spawn_sdf_model')
     spawn_model = rospy.ServiceProxy('/gazebo/spawn_sdf_model', SpawnModel)
@@ -199,6 +237,23 @@ def spawn_marker_sequence_parallel(points, model_name='marker_sphere', color='re
         rospy.loginfo(f"Spawned trajectory model '{model_name}' successfully with {len(points)} points!")
     except rospy.ServiceException as e:
         rospy.logerr(f"Failed to spawn trajectory model '{model_name}': {e}")
+
+# def spawn_marker_sequence_parallel(points, base_model_name='marker_sphere', color='red'):
+#     """Spawn nhiều marker song song nhưng có delay nhỏ tránh lỗi."""
+#     delete_model(base_model_name)  # 🔹 Xóa model cũ trước khi vẽ mới
+
+#     threads = []
+#     for i, (x, y, z) in enumerate(points):
+#         model_name = f"{base_model_name}_{i}"
+#         thread = threading.Thread(target=spawn_marker, args=(x, y, z, model_name, color))
+#         threads.append(thread)
+#         thread.start()
+#         rospy.sleep(0.05)  # 🔹 Thêm delay nhỏ để tránh overload Gazebo
+
+#     for thread in threads:
+#         thread.join()
+
+#     rospy.sleep(0.01)  # 🔹 Đảm bảo tất cả model đã spawn xong
 
 if __name__ == "__main__":
     rospy.init_node("reset_robot_node")

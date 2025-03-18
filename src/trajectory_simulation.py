@@ -7,14 +7,14 @@ import random
 import math
 from python_utils.printer import Printer
 from python_utils.plotter import Plotter
-from utils.utils import reset_robot, spawn_marker_sequence_parallel, spawn_marker
+from rocat_sim.src.utils.utils import reset_robot, spawn_marker_sequence_parallel, spawn_marker
 import time
 import numpy as np
 
 global_printer = Printer()
 global_plotter = Plotter()
 
-MAX_CATCH_DIST = 0.6
+MAX_CATCH_DIST = 0.4
 DATA_WITH_Y_UP = True   # only apply to simulate in gazebo, not apply for data feed to model
 
 data_mother_dir = os.getenv('NAE_DATASET20')
@@ -74,6 +74,8 @@ def publish_trajectories(data):
                 traj_show_gzb = traj[:, 1:]
             traj_show_gzb = np.array(traj_show_gzb)
             spawn_marker_sequence_parallel(traj_show_gzb, model_name="real_IP", color="green")
+            # sleep 2 seconds
+            time.sleep(2)
             # 2. Start to publish trajectory, step by step
             # last_pub_time = time.time()
             last_pub_time = rospy.Time.now().to_sec()

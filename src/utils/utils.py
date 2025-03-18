@@ -6,7 +6,7 @@ from gazebo_msgs.srv import SpawnModel, DeleteModel, SetModelState, GetWorldProp
 from gazebo_msgs.msg import ModelState
 from geometry_msgs.msg import Pose
 
-def reset_robot(x_init=0.0, y_init=0.0, z_init=0.6, roll_init=0.0, pitch_init=0.0, yaw_init=0.0):
+def reset_robot(x_init=0.0, y_init=0.0, z_init=0.45, roll_init=0.0, pitch_init=0.0, yaw_init=0.0):
     rospy.wait_for_service("/gazebo/set_model_state")
     try:
         set_state = rospy.ServiceProxy("/gazebo/set_model_state", SetModelState)

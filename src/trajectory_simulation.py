@@ -8,6 +8,7 @@ import math
 from python_utils.printer import Printer
 from python_utils.plotter import Plotter
 from utils.utils import reset_robot, spawn_marker
+import time
 
 global_printer = Printer()
 global_plotter = Plotter()
@@ -43,20 +44,24 @@ def publish_trajectories(data):
             print('     Data points: ', len(traj))
             print('     Estimated time: ', len(traj)/120)
             print('     impact_point: ', impact_point)
+            # 1. Setup initial conditions before publishing trajectory
             reset_robot(init_robot_pos[0], init_robot_pos[1], init_robot_pos[2], 0, 0, angle)
             spawn_marker(impact_point_z_up[0], impact_point_z_up[1], impact_point_z_up[2], color='green')
-
-            for point in tqdm(traj):
-                if point.shape[0] != 3:
-                    raise ValueError('Trajectory point must have 3 dimensions (x, y, z)')
+            # 2. Start to publish trajectory, step by step
+            # last_pub_time = time.time()
+            last_pub_time = rospy.Time.now().to_sec()
+            # for point in tqdm(traj):
+            for point in traj:
+                if point.shape[0] != 4:
+                    raise ValueError('Trajectory point must have 4 dimensions (t, x, y, z)')
                 pose = PoseStamped()
-                pose.header.stamp = rospy.Time.now()
+                pose.header.stamp = rospy.Time.now()    # Use real time instead of trajectory time
                 pose.header.frame_id = "world"  # Thay đổi frame_id nếu cần
 
                 # Thiết lập giá trị vị trí (Ví dụ: cố định tại gốc tọa độ)
-                pose.pose.position.x = point[0]
-                pose.pose.position.y = point[1]
-                pose.pose.position.z = point[2]
+                pose.pose.position.x = point[1]
+                pose.pose.position.y = point[2]
+                pose.pose.position.z = point[3]
 
                 # Thiết lập giá trị quay (Ví dụ: không quay)
                 pose.pose.orientation.x = 0.0
@@ -66,11 +71,18 @@ def publish_trajectories(data):
 
                 pub.publish(pose)
                 rate.sleep()
+                # dt = time.time() - last_pub_time
+                dt = rospy.Time.now().to_sec() - last_pub_time
+                if dt != 0.0:
+                    real_rate = 1/dt
+                    if abs(real_rate - 120) > 5.0:
+                        global_printer.print_red(f'  WARNING: Real rate is {real_rate} Hz')
+                # last_pub_time = time.time()
+                last_pub_time = rospy.Time.now().to_sec()
 
 def load_trajectory_data():
     nae_data_loader = NAEDataLoader() 
     data_train, data_val, data_test = nae_data_loader.load_train_val_test_dataset(data_dir, file_format='csv')
-    data_test = [d_test[:, :3] for d_test in data_test]
     return data_test
 
 if __name__ == "__main__":

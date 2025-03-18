@@ -55,4 +55,7 @@
         <arg name="rname" value="$(arg rname)"/>
     </include>
 
+    <!-- Chạy Gazebo GUI với chế độ verbose -->
+    <node pkg="gazebo_ros" type="gzclient" name="gzclient" args="--verbose" output="screen" if="$(arg gui)"/>
+
 </launch>

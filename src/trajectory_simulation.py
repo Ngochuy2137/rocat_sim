@@ -44,7 +44,7 @@ def publish_trajectories(data):
             print('     Estimated time: ', len(traj)/120)
             print('     impact_point: ', impact_point)
             reset_robot(init_robot_pos[0], init_robot_pos[1], init_robot_pos[2], 0, 0, angle)
-            spawn_marker(impact_point_z_up[0], impact_point_z_up[1], impact_point_z_up[2])
+            spawn_marker(impact_point_z_up[0], impact_point_z_up[1], impact_point_z_up[2], color='green')
 
             for point in tqdm(traj):
                 if point.shape[0] != 3:

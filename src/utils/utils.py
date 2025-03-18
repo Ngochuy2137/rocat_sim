@@ -58,7 +58,16 @@ def delete_model(model_name):
     # Chờ 2s để đảm bảo Gazebo cập nhật trạng thái
     rospy.sleep(2)
 
-def spawn_marker(x, y, z):
+COLOR_MAP = {
+    "red": (1, 0, 0, 1),
+    "green": (0, 1, 0, 1),
+    "blue": (0, 0, 1, 1),
+    "yellow": (1, 1, 0, 1),
+    "purple": (0.5, 0, 0.5, 1),
+    "white": (1, 1, 1, 1),
+    "black": (0, 0, 0, 1),
+}
+def spawn_marker(x, y, z, color="red"):
     model_name = "marker_sphere"
 
     # Xóa model nếu đã tồn tại
@@ -67,9 +76,9 @@ def spawn_marker(x, y, z):
     # Chờ dịch vụ spawn của Gazebo
     rospy.wait_for_service('/gazebo/spawn_sdf_model')
     spawn_model = rospy.ServiceProxy('/gazebo/spawn_sdf_model', SpawnModel)
-
+    color_rgba = COLOR_MAP.get(color.lower(), (1, 0, 0, 1))  # Mặc định là màu đỏ
     # Định nghĩa SDF chỉ có visual, không có va chạm
-    sphere_sdf = """<?xml version="1.0"?>
+    sphere_sdf = f"""<?xml version="1.0"?>
     <sdf version="1.6">
       <model name="marker_sphere">
         <static>true</static>  <!-- Không bị tác động bởi trọng lực -->
@@ -81,7 +90,8 @@ def spawn_marker(x, y, z):
               </sphere>
             </geometry>
             <material>
-              <ambient>1 0 0 1</ambient>  <!-- Màu đỏ -->
+              <ambient>{color_rgba[0]} {color_rgba[1]} {color_rgba[2]} {color_rgba[3]}</ambient> 
+              <diffuse>{color_rgba[0]} {color_rgba[1]} {color_rgba[2]} {color_rgba[3]}</diffuse>
             </material>
           </visual>
         </link>

@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rocat_sim"
+version = "0.1.0"
+description = ""
+authors = [
+    { name = "Nguyen Ngoc Huy", email = "Huy.nguyenngoc2137@gmail.com" }
+]
+dependencies = []
+
+[tool.setuptools.packages.find]
+where = ["src"]  # Nếu bạn đặt mã nguồn trong "src/" thì giữ nguyên, nếu không có thì bỏ dòng này.

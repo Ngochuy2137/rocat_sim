@@ -7,7 +7,7 @@ from gazebo_msgs.msg import ModelState
 from geometry_msgs.msg import Pose, PoseStamped
 
 def reset_robot(x_init=0.0, y_init=0.0, z_init=0.45, roll_init=0.0, pitch_init=0.0, yaw_init=0.0):
-    rospy.wait_for_service("/gazebo/set_model_state")
+    rospy.wait_for_service("/gazebo/set_model_state", timeout=2)
     try:
         set_state = rospy.ServiceProxy("/gazebo/set_model_state", SetModelState)
         state_msg = SetModelStateRequest()
@@ -33,7 +33,7 @@ def reset_robot(x_init=0.0, y_init=0.0, z_init=0.45, roll_init=0.0, pitch_init=0
 
 def model_exists(model_name):
     """ Kiểm tra xem model có tồn tại trong Gazebo không """
-    rospy.wait_for_service('/gazebo/get_world_properties')
+    rospy.wait_for_service('/gazebo/get_world_properties', timeout=2)
     try:
         get_world_properties = rospy.ServiceProxy('/gazebo/get_world_properties', GetWorldProperties)
         world_properties = get_world_properties()
@@ -43,7 +43,7 @@ def model_exists(model_name):
         return False  # Nếu không thể kiểm tra, giả định model không tồn tại
 
 COLOR_MAP = {
-    "red": (1, 0, 0, 0.5),
+    "red": (1, 0, 0, 1.0),
     "green": (0, 1, 0, 0.5),
     "blue": (0, 0, 1, 0.5),
     "yellow": (1, 1, 0, 0.5),
@@ -55,7 +55,7 @@ COLOR_MAP = {
 import threading
 def delete_model(model_name):
     """Tìm và xóa tất cả các model có chứa model_name trong tên một cách song song."""
-    rospy.wait_for_service('/gazebo/get_world_properties')
+    rospy.wait_for_service('/gazebo/get_world_properties', timeout=2)
     try:
         get_world_properties = rospy.ServiceProxy('/gazebo/get_world_properties', GetWorldProperties)
         world_properties = get_world_properties()
@@ -65,7 +65,7 @@ def delete_model(model_name):
             rospy.loginfo(f"No models matching '{model_name}' found.")
             return
 
-        rospy.wait_for_service('/gazebo/delete_model')
+        rospy.wait_for_service('/gazebo/delete_model', timeout=2)
         delete_srv = rospy.ServiceProxy('/gazebo/delete_model', DeleteModel)
 
         def delete_task(model):
@@ -134,7 +134,7 @@ def spawn_marker(x, y, z, model_name='marker_sphere', color='red', size=0.05):
     delete_model(model_name)
 
     # Chờ dịch vụ spawn của Gazebo
-    rospy.wait_for_service('/gazebo/spawn_sdf_model')
+    rospy.wait_for_service('/gazebo/spawn_sdf_model', timeout=2)
     spawn_model = rospy.ServiceProxy('/gazebo/spawn_sdf_model', SpawnModel)
     color_rgba = COLOR_MAP.get(color.lower(), (1, 0, 0, 1))  # Mặc định là màu đỏ
 
@@ -197,7 +197,7 @@ def spawn_marker_sequence_parallel(points, model_name='marker_sphere', color='re
     delete_model(model_name)  # Xóa model cũ nếu tồn tại
     rospy.sleep(1)  # Chờ Gazebo cập nhật trạng thái
     
-    rospy.wait_for_service('/gazebo/spawn_sdf_model')
+    rospy.wait_for_service('/gazebo/spawn_sdf_model', timeout=2)
     spawn_model = rospy.ServiceProxy('/gazebo/spawn_sdf_model', SpawnModel)
     color_rgba = COLOR_MAP.get(color.lower(), (1, 0, 0, 1))  # Mặc định là đỏ
 
@@ -259,11 +259,13 @@ def spawn_marker_sequence_parallel(points, model_name='marker_sphere', color='re
 import rospy
 from visualization_msgs.msg import Marker
 from geometry_msgs.msg import Point
-def publish_points(points, points_pub: rospy.Publisher):
+def publish_points(points, points_pub: rospy.Publisher, color='green', size=0.05):
     """
     Publish danh sách điểm lên RViz.
     :param points: List các tuple (x, y, z)
     """
+    if color not in COLOR_MAP:
+        color = 'green'  # Màu mặc định
     marker = Marker()
     marker.header.frame_id = "world"
     marker.header.stamp = rospy.Time.now()
@@ -271,11 +273,9 @@ def publish_points(points, points_pub: rospy.Publisher):
     marker.id = 0
     marker.type = Marker.SPHERE_LIST
     marker.action = Marker.ADD
-    marker.scale.x = 0.05  # Kích thước điểm
-    marker.scale.y = 0.05
-    marker.color.r = 0.0
-    marker.color.g = 1.0  # Màu xanh lá cây
-    marker.color.b = 0.0
+    marker.scale.x = size  # Kích thước điểm
+    marker.scale.y = size
+    marker.color.r, marker.color.g, marker.color.b, marker.color.a = COLOR_MAP[color]
     marker.color.a = 0.5  # Độ trong suốt
     
     # Thêm các điểm vào marker
@@ -285,9 +285,10 @@ def publish_points(points, points_pub: rospy.Publisher):
         p.y = y
         p.z = z
         marker.points.append(p)
+        marker.pose.orientation.w = 1.0
 
     points_pub.publish(marker)
-    rospy.loginfo("Published {} points to RViz".format(len(points)))
+    rospy.loginfo(f"Published {len(points)} points to RViz, topic: {points_pub.name}")
 
 # def publish_special_point(x, y, z, special_point_pub: rospy.Publisher):
 #     """
@@ -331,7 +332,11 @@ def publish_special_point(x, y, z, special_point_pub: rospy.Publisher):
 
 from std_srvs.srv import SetBool, SetBoolRequest, SetBoolResponse
 def send_bool_signal_srv(trigger_value):
-    rospy.wait_for_service('/reset_catching_srv')  # Chờ service sẵn sàng
+    try:
+        rospy.wait_for_service('/reset_catching_srv', timeout=2)
+    except rospy.ROSException:
+        rospy.logerr("Service '/reset_catching_srv' is not available within timeout!")
+        return
     try:
         service_client = rospy.ServiceProxy('/reset_catching_srv', SetBool)
         request = SetBoolRequest(data=trigger_value)  # Gửi True/False

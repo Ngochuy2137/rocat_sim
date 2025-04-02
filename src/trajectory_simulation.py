@@ -16,7 +16,7 @@ from geometry_msgs.msg import Point, PoseStamped
 global_printer = Printer()
 global_plotter = Plotter()
 
-MAX_CATCH_DIST = 0.6
+MAX_CATCH_DIST = 0.8
 DATA_WITH_Y_UP = True   # only apply to simulate in gazebo, not apply for data feed to model
 
 data_mother_dir = os.getenv('NAE_DATASET20')
@@ -62,7 +62,7 @@ def publish_trajectories(data):
             alpha_degree = random.uniform(-20, 20)
             init_robot_pos = find_point_A(impact_point_z_up[0], impact_point_z_up[1], alpha_degree=alpha_degree, d=MAX_CATCH_DIST)
 
-            global_printer.print_yellow(f'  ENTER to reset ROBOT to initial position: {init_robot_pos[0]}, {init_robot_pos[1]}'); input()
+            global_printer.print_yellow(f'  ENTER to reset ROBOT to initial position: {init_robot_pos[0]}, {init_robot_pos[1]}'); input('----------------')
             print('     Data points: ', len(traj))
             print('     Estimated time: ', len(traj)/120)
             print('     impact_point: ', impact_point_no_t)

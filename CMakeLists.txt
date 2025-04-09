@@ -162,6 +162,7 @@ include_directories(
 catkin_install_python(PROGRAMS
   src/impact_checker.py
   src/basket_pub.py
+  src/throw_manager_node.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

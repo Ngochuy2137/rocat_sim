@@ -118,6 +118,14 @@ Visualization Manager:
       Topic: /flying_object
       Unreliable: false
       Value: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: NAE/pred_impact_point_list
+      Name: pred_impact_point_list
+      Namespaces:
+        {}
+      Queue Size: 10
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -146,7 +154,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 7.235687255859375
+      Distance: 8.082046508789062
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -154,17 +162,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 1.040270209312439
-        Y: -1.555416464805603
-        Z: 0.8888097405433655
+        X: 1.0342400074005127
+        Y: -2.0514960289001465
+        Z: 0.42147618532180786
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.6947977542877197
+      Pitch: 1.4897969961166382
       Target Frame: <Fixed Frame>
-      Yaw: 4.878566741943359
+      Yaw: 4.693562984466553
     Saved: ~
 Window Geometry:
   Displays:

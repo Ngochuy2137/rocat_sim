@@ -1,4 +1,5 @@
 <launch>
+<!-- This launch is for counting success, failure -->
     <!-- Sử dụng thời gian giả lập nếu chạy trong Gazebo -->
     <param name="use_sim_time" value="true"/>
     

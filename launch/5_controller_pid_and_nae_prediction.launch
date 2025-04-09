@@ -1,0 +1,10 @@
+<launch>
+    <param name="use_sim_time" value="true"/>
+
+    <!-- Controller -->
+    <node pkg="unitree_navigation" type="go1_control_node_sim.py" name="go1_control_node_sim" output="screen"  />
+    <!-- NAE prediction -->
+    <node pkg="nae_online_prediction" type="online_predict_node_sim.py" name="online_predict_node_sim" output="screen"  />
+
+</launch>
+

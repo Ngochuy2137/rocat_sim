@@ -1,0 +1,6 @@
+<launch>
+<!-- This launch is for manage when to throw object, send service to reset robot, counter -->
+    <param name="use_sim_time" value="true"/>
+    <node pkg="rocat_sim" type="throw_manager_node.py" name="throw_manager_node" output="screen" />
+</launch>
+

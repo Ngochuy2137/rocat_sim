@@ -327,7 +327,7 @@ def publish_special_point(x, y, z, special_point_pub: rospy.Publisher):
     point.pose.position.z = z
     point.pose.orientation.w = 1.0
     special_point_pub.publish(point)
-    rospy.loginfo("Published special point at ({}, {}, {}) to RViz".format(x, y, z))
+    # rospy.loginfo("Published special point at ({}, {}, {}) to RViz".format(x, y, z))
 
 
 from std_srvs.srv import SetBool, SetBoolRequest, SetBoolResponse

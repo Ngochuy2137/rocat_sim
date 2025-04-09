@@ -1,3 +1,11 @@
+'''
+This node is used to :
+- publish trajectories of a flying object in a simulation environment
+- reset the robot to a specific position (call service)
+- trigger the robot to catch the object
+'''
+
+
 import rospy
 from geometry_msgs.msg import PoseStamped
 from nae_static.utils.submodules.training_utils.data_loader import DataLoader as NAEDataLoader
@@ -12,6 +20,7 @@ import time
 import numpy as np
 from visualization_msgs.msg import Marker
 from geometry_msgs.msg import Point, PoseStamped
+from tqdm import tqdm
 
 global_printer = Printer()
 global_plotter = Plotter()
@@ -39,15 +48,16 @@ def find_point_A(x_B, y_B, alpha_degree, d):
     return [x_A, y_A]
 
 def publish_trajectories(data):
-    rospy.init_node('pose_publisher', anonymous=True)
+    rospy.init_node('throw_manager', anonymous=True)
     pub = rospy.Publisher(f'/mocap_sim/{object_name}', PoseStamped, queue_size=10)
     rate = rospy.Rate(120)  # 120 Hz
 
     while not rospy.is_shutdown():
         for traj_idx, traj in enumerate(data):
+            global_printer.print_green('\n' + '-'*50, background=True)
+            global_printer.print_green(f'Publishing trajectory {traj_idx}')
             if traj.shape[1] != 4:
                 raise ValueError('Trajectory point must have 4 dimensions (t, x, y, z)')
-            global_printer.print_green(f'\nPublishing trajectory {traj_idx}. ENTER to continue...')
             impact_point_no_t = traj[-1, 1:]
             if DATA_WITH_Y_UP:
                 impact_point_z_up = [impact_point_no_t[0], -impact_point_no_t[2], impact_point_no_t[1]]
@@ -58,14 +68,13 @@ def publish_trajectories(data):
             # init_robot_pos = (impact_point_z_up[0]+dist_random_x, impact_point_z_up[1]+dist_random_y, 0.45)
             # # calculate orientation of robot to head to impact point
             # angle = math.atan2(-dist_random_y, -dist_random_x)
-
             alpha_degree = random.uniform(-20, 20)
             init_robot_pos = find_point_A(impact_point_z_up[0], impact_point_z_up[1], alpha_degree=alpha_degree, d=MAX_CATCH_DIST)
-
-            global_printer.print_yellow(f'  ENTER to reset ROBOT to initial position: {init_robot_pos[0]}, {init_robot_pos[1]}'); input('----------------')
+            global_printer.print_green(f'  ENTER to reset ROBOT to initial position: {init_robot_pos[0]}, {init_robot_pos[1]}'); 
             print('     Data points: ', len(traj))
             print('     Estimated time: ', len(traj)/120)
             print('     impact_point: ', impact_point_no_t)
+            input()
             # 1. Setup initial conditions before publishing trajectory
             reset_robot(x_init = init_robot_pos[0], y_init = init_robot_pos[1])
             if DATA_WITH_Y_UP:
@@ -79,6 +88,7 @@ def publish_trajectories(data):
             traj_pub = rospy.Publisher("/flying_object_trajectory", Marker, queue_size=10)
             publish_points(points_pub=traj_pub, points=traj_show_gzb)
             # sleep 2 seconds
+            global_printer.print_green('  Waiting for 2 seconds to spawn trajectory marker')
             time.sleep(2)
 
             # 2. trigger Go1, pub to topic /mocap_pose_topic/chip_star_pose PoseStamped
@@ -97,7 +107,9 @@ def publish_trajectories(data):
             # last_pub_time = time.time()
             last_pub_time = rospy.Time.now().to_sec()
             # for point in tqdm(traj):
-            for p_idx, point in enumerate(traj):
+            # use tqdm to show progress
+            for p_idx, point in tqdm(enumerate(traj), total=len(traj)):
+            # for p_idx, point in enumerate(traj):
                 pose = PoseStamped()
                 pose.header.stamp = rospy.Time.now()    # Use real time instead of trajectory time
                 pose.header.frame_id = "world"  # Thay đổi frame_id nếu cần

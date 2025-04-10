@@ -5,6 +5,17 @@ import tf.transformations
 from gazebo_msgs.srv import SpawnModel, DeleteModel, SetModelState, GetWorldProperties
 from gazebo_msgs.msg import ModelState
 from geometry_msgs.msg import Pose, PoseStamped
+import json
+
+class Config:
+    def __init__(self, json_file_path):
+        with open(json_file_path, 'r') as f:
+            data = json.load(f)
+
+        self.TRIGGER_TOPIC = data.get("TRIGGER_TOPIC")
+        self.REAL_TRAJECTORY_TOPIC = data.get("REAL_TRAJECTORY_TOPIC")
+        self.REALTIME_OBJECT_POSE_TOPIC = data.get("REALTIME_OBJECT_POSE_TOPIC")
+        self.REALTIME_ROBOT_POSE_TOPIC = data.get("REALTIME_ROBOT_POSE_TOPIC")
 
 def reset_robot(x_init=0.0, y_init=0.0, z_init=0.45, roll_init=0.0, pitch_init=0.0, yaw_init=0.0):
     rospy.wait_for_service("/gazebo/set_model_state", timeout=2)

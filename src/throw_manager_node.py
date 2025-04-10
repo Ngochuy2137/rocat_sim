@@ -7,6 +7,7 @@ This node is used to :
 
 
 import rospy
+import rospkg
 from geometry_msgs.msg import PoseStamped
 from nae_static.utils.submodules.training_utils.data_loader import DataLoader as NAEDataLoader
 import os
@@ -21,9 +22,17 @@ import numpy as np
 from visualization_msgs.msg import Marker
 from geometry_msgs.msg import Point, PoseStamped
 from tqdm import tqdm
+from rocat_sim.src.utils.utils import Config
 
 global_printer = Printer()
 global_plotter = Plotter()
+
+# Load global config
+rospack = rospkg.RosPack()
+package_path = rospack.get_path('rocat_sim')  # Tên package của bạn
+json_file_path = os.path.join(package_path, 'configs/config.json')
+print(f'json_file_path: {json_file_path}')
+global_config = Config(json_file_path)
 
 MAX_CATCH_DIST = 0.8
 DATA_WITH_Y_UP = True   # only apply to simulate in gazebo, not apply for data feed to model
@@ -85,14 +94,14 @@ def publish_trajectories(data):
                 traj_show_gzb = traj[:, 1:]
             traj_show_gzb = np.array(traj_show_gzb)
             spawn_marker_sequence_parallel(traj_show_gzb, model_name="real_IP", color="green")
-            traj_pub = rospy.Publisher("/flying_object_trajectory", Marker, queue_size=10)
+            traj_pub = rospy.Publisher(global_config.REAL_TRAJECTORY_TOPIC, Marker, queue_size=10)
             publish_points(points_pub=traj_pub, points=traj_show_gzb)
             # sleep 2 seconds
             global_printer.print_green('  Waiting for 2 seconds to spawn trajectory marker')
             time.sleep(2)
 
             # 2. trigger Go1, pub to topic /mocap_pose_topic/chip_star_pose PoseStamped
-            trigger_pub = rospy.Publisher("/mocap_pose_topic/chip_star_pose", PoseStamped, queue_size=100)
+            trigger_pub = rospy.Publisher(global_config.TRIGGER_TOPIC, PoseStamped, queue_size=100)
             trigger_pose = PoseStamped()
             trigger_pose.header.stamp = rospy.Time.now()
             trigger_pose.header.frame_id = "world"
@@ -127,8 +136,7 @@ def publish_trajectories(data):
 
                 pub.publish(pose)
                 # spawn_marker(x=point[1], y=-point[3], z=point[2], model_name=f"Object_{p_idx}", color="blue")
-                # flying_object_pub = rospy.Publisher("/flying_object", Marker, queue_size=10)
-                flying_object_pub = rospy.Publisher("/flying_object", PoseStamped, queue_size=10)
+                flying_object_pub = rospy.Publisher(global_config.REALTIME_OBJECT_POSE_TOPIC, PoseStamped, queue_size=10)
                 publish_special_point(x=point[1], y=-point[3], z=point[2], special_point_pub=flying_object_pub)
                 rate.sleep()
                 # dt = time.time() - last_pub_time

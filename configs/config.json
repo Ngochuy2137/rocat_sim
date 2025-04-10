@@ -1,0 +1,6 @@
+{
+    "TRIGGER_TOPIC" : "/mocap_pose_topic/chip_star_pose",
+    "REAL_TRAJECTORY_TOPIC": "/flying_object_trajectory",
+    "REALTIME_OBJECT_POSE_TOPIC": "/flying_object",
+    "REALTIME_ROBOT_POSE_TOPIC": "/unitree_go1/pose"
+}

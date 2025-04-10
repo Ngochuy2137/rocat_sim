@@ -12,11 +12,12 @@ class Config:
         with open(json_file_path, 'r') as f:
             data = json.load(f)
 
-        self.TRIGGER_TOPIC = data.get("TRIGGER_TOPIC")
-        self.REAL_TRAJECTORY_TOPIC = data.get("REAL_TRAJECTORY_TOPIC")
-        self.REALTIME_OBJECT_POSE_TOPIC = data.get("REALTIME_OBJECT_POSE_TOPIC")
-        self.REALTIME_ROBOT_POSE_TOPIC = data.get("REALTIME_ROBOT_POSE_TOPIC")
-        self.REALTIME_BASKET_POSE_TOPIC = data.get("REALTIME_BASKET_POSE_TOPIC")
+        self.trigger_topic = data.get("trigger_topic")
+        self.real_trajectory_topic = data.get("real_trajectory_topic")
+        self.realtime_object_pose_topic = data.get("realtime_object_pose_topic")
+        self.realtime_robot_pose_topic = data.get("realtime_robot_pose_topic")
+        self.realtime_basket_pose_topic = data.get("realtime_basket_pose_topic")
+        self.predicted_impact_point_topic = data.get("predicted_impact_point_topic")
 
 def reset_robot(x_init=0.0, y_init=0.0, z_init=0.45, roll_init=0.0, pitch_init=0.0, yaw_init=0.0):
     rospy.wait_for_service("/gazebo/set_model_state", timeout=2)

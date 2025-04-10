@@ -1,6 +1,9 @@
 {
-    "TRIGGER_TOPIC" : "/mocap_pose_topic/chip_star_pose",
-    "REAL_TRAJECTORY_TOPIC": "/flying_object_trajectory",
-    "REALTIME_OBJECT_POSE_TOPIC": "/flying_object",
-    "REALTIME_ROBOT_POSE_TOPIC": "/unitree_go1/pose"
+    "trigger_topic" : "/mocap_pose_topic/chip_star_pose",
+    "real_trajectory_topic": "/flying_object_trajectory",
+    "realtime_object_pose_topic": "/flying_object",
+    "realtime_robot_pose_topic": "/unitree_go1/pose",
+    "realtime_basket_pose_topic": "/unitree_go1/basket_pose",
+    "predicted_impact_point_topic": "/NAE/impact_point",
+    "trigger_n_thow_time_gap_sim": 1.0
 }

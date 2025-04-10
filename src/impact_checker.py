@@ -6,6 +6,16 @@ from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Point, PoseStamped
 from python_utils.printer import Printer
 from std_srvs.srv import SetBool, SetBoolResponse
+from rocat_sim.src.utils.utils import Config
+import os
+import rospkg
+
+# Load global config
+rospack = rospkg.RosPack()
+package_path = rospack.get_path('rocat_sim')  # Tên package của bạn
+json_file_path = os.path.join(package_path, 'configs/config.json')
+print(f'json_file_path: {json_file_path}')
+global_config = Config(json_file_path)
 
 global_printer = Printer()
 
@@ -18,8 +28,8 @@ class ImpactChecker:
         rospy.init_node("impact_checker", anonymous=True)
 
         # Subscribe vào topic vị trí robot (Odometry) và vật thể (Point)
-        self.robot_sub = rospy.Subscriber("/unitree_go1/pose", Odometry, self.robot_callback)
-        self.object_sub = rospy.Subscriber("/flying_object", PoseStamped, self.object_callback)
+        self.robot_sub = rospy.Subscriber(global_config.realtime_robot_pose_topic, Odometry, self.robot_callback)
+        self.object_sub = rospy.Subscriber(global_config.realtime_object_pose_topic, PoseStamped, self.object_callback)
 
         self.robot_position = None
         self.object_position = None

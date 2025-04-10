@@ -16,8 +16,7 @@ import random
 import math
 from python_utils.printer import Printer
 from python_utils.plotter import Plotter
-from rocat_sim.src.utils.utils import reset_robot, spawn_marker_sequence_parallel, publish_points, publish_special_point, send_bool_signal_srv
-import time
+from rocat_sim.src.utils.utils import reset_robot, spawn_marker_sequence_parallel, publish_points, publish_special_point, send_bool_signal_srv, find_point_A
 import numpy as np
 from visualization_msgs.msg import Marker
 from geometry_msgs.msg import Point, PoseStamped
@@ -40,21 +39,6 @@ DATA_WITH_Y_UP = True   # only apply to simulate in gazebo, not apply for data f
 data_mother_dir = os.getenv('NAE_DATASET20')
 object_name = 'ball'
 data_dir = os.path.join(data_mother_dir, object_name, '3-data-augmented', 'data_plit')
-
-def find_point_A(x_B, y_B, alpha_degree, d):
-    """
-    Tính tọa độ điểm A từ điểm B, góc alpha và khoảng cách d.
-
-    :param x_B: Tọa độ x của điểm B
-    :param y_B: Tọa độ y của điểm B
-    :param alpha: Góc của tia AB so với trục OX (đơn vị độ)
-    :param d: Khoảng cách từ A đến B
-    :return: (x_A, y_A) tọa độ của điểm A
-    """
-    alpha_rad = math.radians(alpha_degree)  # Chuyển độ sang radian
-    x_A = x_B - d * math.cos(alpha_rad)
-    y_A = y_B - d * math.sin(alpha_rad)
-    return [x_A, y_A]
 
 def publish_trajectories(data):
     rospy.init_node('throw_manager', anonymous=True)
@@ -94,26 +78,28 @@ def publish_trajectories(data):
                 traj_show_gzb = traj[:, 1:]
             traj_show_gzb = np.array(traj_show_gzb)
             spawn_marker_sequence_parallel(traj_show_gzb, model_name="real_IP", color="green")
-            traj_pub = rospy.Publisher(global_config.REAL_TRAJECTORY_TOPIC, Marker, queue_size=10)
+            traj_pub = rospy.Publisher(global_config.real_trajectory_topic, Marker, queue_size=10)
             publish_points(points_pub=traj_pub, points=traj_show_gzb)
             # sleep 2 seconds
             global_printer.print_green('  Waiting for 2 seconds to spawn trajectory marker')
-            time.sleep(2)
+            rospy.sleep(2)
 
-            # 2. trigger Go1, pub to topic /mocap_pose_topic/chip_star_pose PoseStamped
-            trigger_pub = rospy.Publisher(global_config.TRIGGER_TOPIC, PoseStamped, queue_size=100)
+            # 2.1 trigger impact checker
+            send_bool_signal_srv(True)
+
+            # 2.2 trigger Go1, pub to topic /mocap_pose_topic/chip_star_pose PoseStamped
+            trigger_pub = rospy.Publisher(global_config.trigger_topic, PoseStamped, queue_size=100)
             trigger_pose = PoseStamped()
             trigger_pose.header.stamp = rospy.Time.now()
             trigger_pose.header.frame_id = "world"
             trigger_pose.pose.orientation.w = 1.0
             trigger_pub.publish(trigger_pose)
+            # sleep awhile with rospy
+            rospy.sleep(global_config.trigger_n_thow_time_gap_sim)
 
-            # trigger impact checker
-            send_bool_signal_srv(True)
-            time.sleep(1)
             
             # 3. Start to publish trajectory, step by step
-            # last_pub_time = time.time()
+            # last_pub_time = rospy.Time.now().to_sec()
             last_pub_time = rospy.Time.now().to_sec()
             # for point in tqdm(traj):
             # use tqdm to show progress
@@ -136,16 +122,16 @@ def publish_trajectories(data):
 
                 pub.publish(pose)
                 # spawn_marker(x=point[1], y=-point[3], z=point[2], model_name=f"Object_{p_idx}", color="blue")
-                flying_object_pub = rospy.Publisher(global_config.REALTIME_OBJECT_POSE_TOPIC, PoseStamped, queue_size=10)
+                flying_object_pub = rospy.Publisher(global_config.realtime_object_pose_topic, PoseStamped, queue_size=10)
                 publish_special_point(x=point[1], y=-point[3], z=point[2], special_point_pub=flying_object_pub)
                 rate.sleep()
-                # dt = time.time() - last_pub_time
+                # dt = rospy.Time.now().to_sec() - last_pub_time
                 dt = rospy.Time.now().to_sec() - last_pub_time
                 if dt != 0.0:
                     real_rate = 1/dt
                     if abs(real_rate - 120) > 5.0:
                         global_printer.print_red(f'  WARNING: Real rate is {real_rate} Hz')
-                # last_pub_time = time.time()
+                # last_pub_time = rospy.Time.now().to_sec()
                 last_pub_time = rospy.Time.now().to_sec()
 
 def load_trajectory_data():

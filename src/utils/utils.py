@@ -16,6 +16,7 @@ class Config:
         self.REAL_TRAJECTORY_TOPIC = data.get("REAL_TRAJECTORY_TOPIC")
         self.REALTIME_OBJECT_POSE_TOPIC = data.get("REALTIME_OBJECT_POSE_TOPIC")
         self.REALTIME_ROBOT_POSE_TOPIC = data.get("REALTIME_ROBOT_POSE_TOPIC")
+        self.REALTIME_BASKET_POSE_TOPIC = data.get("REALTIME_BASKET_POSE_TOPIC")
 
 def reset_robot(x_init=0.0, y_init=0.0, z_init=0.45, roll_init=0.0, pitch_init=0.0, yaw_init=0.0):
     rospy.wait_for_service("/gazebo/set_model_state", timeout=2)

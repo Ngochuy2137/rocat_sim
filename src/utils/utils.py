@@ -18,6 +18,7 @@ class Config:
         self.realtime_robot_pose_topic = data.get("realtime_robot_pose_topic")
         self.realtime_basket_pose_topic = data.get("realtime_basket_pose_topic")
         self.predicted_impact_point_topic = data.get("predicted_impact_point_topic")
+        self.trigger_n_thow_time_gap_sim = data.get("trigger_n_thow_time_gap_sim")
 
 def reset_robot(x_init=0.0, y_init=0.0, z_init=0.45, roll_init=0.0, pitch_init=0.0, yaw_init=0.0):
     rospy.wait_for_service("/gazebo/set_model_state", timeout=2)
@@ -342,6 +343,21 @@ def publish_special_point(x, y, z, special_point_pub: rospy.Publisher):
     special_point_pub.publish(point)
     # rospy.loginfo("Published special point at ({}, {}, {}) to RViz".format(x, y, z))
 
+import math
+def find_point_A(x_B, y_B, alpha_degree, d):
+    """
+    Tính tọa độ điểm A từ điểm B, góc alpha và khoảng cách d.
+
+    :param x_B: Tọa độ x của điểm B
+    :param y_B: Tọa độ y của điểm B
+    :param alpha: Góc của tia AB so với trục OX (đơn vị độ)
+    :param d: Khoảng cách từ A đến B
+    :return: (x_A, y_A) tọa độ của điểm A
+    """
+    alpha_rad = math.radians(alpha_degree)  # Chuyển độ sang radian
+    x_A = x_B - d * math.cos(alpha_rad)
+    y_A = y_B - d * math.sin(alpha_rad)
+    return [x_A, y_A]
 
 from std_srvs.srv import SetBool, SetBoolRequest, SetBoolResponse
 def send_bool_signal_srv(trigger_value):

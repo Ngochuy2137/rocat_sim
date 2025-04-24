@@ -6,6 +6,52 @@ from gazebo_msgs.srv import SpawnModel, DeleteModel, SetModelState, GetWorldProp
 from gazebo_msgs.msg import ModelState
 from geometry_msgs.msg import Pose, PoseStamped
 import json
+import rospy
+from visualization_msgs.msg import Marker, MarkerArray
+from geometry_msgs.msg import Point
+
+from python_utils.printer import Printer
+global_printer = Printer()
+
+
+import subprocess
+import time
+
+
+def beep(duration: float = 0.1, freq: float = 440.0) -> None:
+    """
+    Phát một tiếng beep dùng sox qua ALSA.
+
+    Args:
+        duration: độ dài âm thanh (giây), mặc định 0.1s
+        freq: tần số (Hz), mặc định 440 Hz (A4)
+    """
+    try:
+        subprocess.run([
+            'play', '-nq', '-t', 'alsa',
+            'synth', str(duration), 'sine', str(freq)
+        ], check=True)
+    except FileNotFoundError:
+        print("Lỗi: không tìm thấy lệnh 'play'. Hãy cài sox (sudo apt install sox libsox-fmt-all).")
+    except subprocess.CalledProcessError as e:
+        print(f"Beep thất bại, return code: {e.returncode}")
+
+def warn_beep(iter):
+    """
+    Phát tiếng beep cảnh báo.
+    """
+    for _ in range(iter):
+        for _ in range(3):
+            beep(duration=0.2, freq=440.0)
+        # nghỉ 0.5 giây giữa các tiếng beep, không dùng rospy
+        time.sleep(0.5)
+
+
+class RocatSimConf:
+    def __init__(self,):
+        self.trigger_n_thow_time_gap_sim = None
+        self.catch_dist = None
+        self.catch_ori_dev_deg_thres = None
 
 class Config:
     def __init__(self, json_file_path):
@@ -18,7 +64,15 @@ class Config:
         self.realtime_robot_pose_topic = data.get("realtime_robot_pose_topic")
         self.realtime_basket_pose_topic = data.get("realtime_basket_pose_topic")
         self.predicted_impact_point_topic = data.get("predicted_impact_point_topic")
-        self.trigger_n_thow_time_gap_sim = data.get("trigger_n_thow_time_gap_sim")
+
+        # Lấy dict rocat_sim
+        self.rocat_sim_conf = RocatSimConf()
+        rocat_sim = data.get("rocat_sim", {})
+        self.rocat_sim_conf.trigger_n_thow_time_gap_sim = rocat_sim.get("trigger_n_thow_time_gap_sim")
+        self.rocat_sim_conf.catch_dist = rocat_sim.get("catching_distance")
+        self.rocat_sim_conf.catch_ori_dev_deg_thres = rocat_sim.get("catching_orientation_dev_deg_thres")
+        self.controller_tolerance_xy = data.get("controller_tolerance_xy")
+        self.catching_height = data.get("catching_height")
 
 def reset_robot(x_init=0.0, y_init=0.0, z_init=0.45, roll_init=0.0, pitch_init=0.0, yaw_init=0.0):
     rospy.wait_for_service("/gazebo/set_model_state", timeout=2)
@@ -200,7 +254,7 @@ def spawn_marker(x, y, z, model_name='marker_sphere', color='red', size=0.05):
 #         spawn_marker(x, y, z, model_name, color)
 
 
-def spawn_marker_sequence_parallel(points, model_name='marker_sphere', color='red', size=0.05):
+def publish_marker_list_2gzb(points, model_name='marker_sphere', color='red', size=0.05):
     """
     Vẽ toàn bộ chuỗi điểm như một model duy nhất thay vì từng marker riêng lẻ.
     
@@ -252,7 +306,7 @@ def spawn_marker_sequence_parallel(points, model_name='marker_sphere', color='re
     except rospy.ServiceException as e:
         rospy.logerr(f"Failed to spawn trajectory model '{model_name}': {e}")
 
-# def spawn_marker_sequence_parallel(points, base_model_name='marker_sphere', color='red'):
+# def publish_marker_list_2gzb(points, base_model_name='marker_sphere', color='red'):
 #     """Spawn nhiều marker song song nhưng có delay nhỏ tránh lỗi."""
 #     delete_model(base_model_name)  # 🔹 Xóa model cũ trước khi vẽ mới
 
@@ -269,10 +323,58 @@ def spawn_marker_sequence_parallel(points, model_name='marker_sphere', color='re
 
 #     rospy.sleep(0.01)  # 🔹 Đảm bảo tất cả model đã spawn xong
 
+def publish_marker_list_2rviz(points,
+                              topic_name='NAE/impact_point_list',
+                              size=0.05,
+                              text_height=0.02):
+    # Publisher for a MarkerArray, latched so RViz can grab it even if it connects later
+    pub = rospy.Publisher(topic_name, MarkerArray, queue_size=1, latch=True)
+    rospy.sleep(0.1)  # give publisher a moment to register
 
-import rospy
-from visualization_msgs.msg import Marker
-from geometry_msgs.msg import Point
+    marker_array = MarkerArray()
+
+    # 1) Marker POINTS cho tất cả các điểm
+    pts_marker = Marker()
+    pts_marker.header.frame_id = "world"
+    pts_marker.header.stamp = rospy.Time.now()
+    pts_marker.ns = "pts"
+    pts_marker.id = 0
+    pts_marker.type = Marker.POINTS
+    pts_marker.action = Marker.ADD
+    pts_marker.scale.x = pts_marker.scale.y = size
+    pts_marker.color.r = 1.0
+    pts_marker.color.g = 1.0
+    pts_marker.color.b = 1.0
+    pts_marker.color.a = 1.0
+    pts_marker.points = [Point(x, y, z) for x, y, z in points]
+    marker_array.markers.append(pts_marker)
+
+    # 2) Một Marker TEXT_VIEW_FACING cho mỗi điểm để hiển thị thứ tự
+    for i, (x, y, z) in enumerate(points):
+        txt_marker = Marker()
+        txt_marker.header.frame_id = "world"
+        txt_marker.header.stamp = pts_marker.header.stamp
+        txt_marker.ns = "labels"
+        txt_marker.id = i + 1
+        txt_marker.type = Marker.TEXT_VIEW_FACING
+        txt_marker.action = Marker.ADD
+        # đặt text ngay trên điểm để không bị chồng lên
+        txt_marker.pose.position.x = x
+        txt_marker.pose.position.y = y
+        txt_marker.pose.position.z = z + size * 1.2
+        txt_marker.text = str(i)
+        txt_marker.scale.z = text_height
+        txt_marker.color.r = 1.0
+        txt_marker.color.g = 0.0
+        txt_marker.color.b = 0.0
+        txt_marker.color.a = 1.0
+        marker_array.markers.append(txt_marker)
+
+    # publish một vài lần để chắc RViz nhận được
+    for _ in range(10):
+        pub.publish(marker_array)
+        rospy.sleep(0.1)
+
 def publish_points(points, points_pub: rospy.Publisher, color='green', size=0.05):
     """
     Publish danh sách điểm lên RViz.
@@ -358,23 +460,6 @@ def find_point_A(x_B, y_B, alpha_degree, d):
     x_A = x_B - d * math.cos(alpha_rad)
     y_A = y_B - d * math.sin(alpha_rad)
     return [x_A, y_A]
-
-from std_srvs.srv import SetBool, SetBoolRequest, SetBoolResponse
-def send_bool_signal_srv(trigger_value):
-    try:
-        rospy.wait_for_service('/reset_catching_srv', timeout=2)
-    except rospy.ROSException:
-        rospy.logerr("Service '/reset_catching_srv' is not available within timeout!")
-        return
-    try:
-        service_client = rospy.ServiceProxy('/reset_catching_srv', SetBool)
-        request = SetBoolRequest(data=trigger_value)  # Gửi True/False
-        response = service_client(request)
-
-        rospy.loginfo(f"Response: success={response.success}, message='{response.message}'")
-
-    except rospy.ServiceException as e:
-        rospy.logerr(f"Service call failed: {e}")
 
 if __name__ == "__main__":
     rospy.init_node("reset_robot_node")

@@ -1,0 +1,9 @@
+<launch>
+    <param name="use_sim_time" value="true"/>
+
+    <!-- Controller -->
+    <node pkg="unitree_navigation" type="go1_control_node_sim.py" name="go1_control_node_sim" output="screen" >
+        <!-- <remap from="NAE/impact_point" to="/move_base_simple/goal"/> -->
+    </node>
+</launch>
+

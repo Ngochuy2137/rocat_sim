@@ -49,7 +49,7 @@ class ImpactChecker:
         self.object_position = None
     
     def is_reset(self):
-        if len(self.success_matrix) == 0 and len(self.this_trial_result) == 0 and self.object_position is None:
+        if len(self.success_matrix) == 0 and len(self.this_trial_result) == 0:
             return True
         else:
             print('Not reset yet:')

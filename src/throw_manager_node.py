@@ -22,6 +22,9 @@ from rocat_sim.src.utils.utils import (
     warn_beep
 )
 
+def shutdown_node():
+    rospy.loginfo("Shutting down the node...")
+    rospy.signal_shutdown("User requested shutdown")
 
 global_printer = Printer()
 global_plotter = Plotter()
@@ -120,8 +123,9 @@ class ThrowManager:
         """Service callback resetting the impact checker when robot reaches goal."""
         print('request:', req)
         if not req.data:
-            global_printer.print_red("        Robot cannot reach goal")
+            global_printer.print_red("Robot cannot reach goal, check simulation")
             warn_beep(5)
+            shutdown_node()
         
         global_printer.print_green("        Received INFO robot reach goal signal")
         self.send_reset_impact_checker_srv()

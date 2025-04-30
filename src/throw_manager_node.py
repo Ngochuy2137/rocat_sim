@@ -17,7 +17,7 @@ from python_utils.plotter import Plotter
 from rocat_sim.src.utils.utils import (
     reset_robot,
     publish_marker_list_2gzb,
-    publish_points,
+    publish_points_2rviz,
     publish_special_point,
     find_point_A,
     Config,
@@ -189,8 +189,8 @@ class ThrowManager:
                 traj_vis = np.array([[p[1], -p[3], p[2]] for p in traj])
             else:
                 traj_vis = traj[:, 1:]
-            publish_marker_list_2gzb(traj_vis, model_name="real_IP", color="green")
-            publish_points(points_pub=self.marker_pub, points=traj_vis)
+            # publish_marker_list_2gzb(traj_vis, model_name="real_IP", color="green")
+            publish_points_2rviz(points_pub=self.marker_pub, points=traj_vis)
             # Delay before trigger
             global_printer.print_green('Waiting 2 seconds before triggering controller ...')
             rospy.sleep(2)

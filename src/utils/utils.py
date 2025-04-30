@@ -375,7 +375,7 @@ def publish_marker_list_2rviz(points,
         pub.publish(marker_array)
         rospy.sleep(0.1)
 
-def publish_points(points, points_pub: rospy.Publisher, color='green', size=0.05):
+def publish_points_2rviz(points, points_pub: rospy.Publisher, color='green', size=0.05):
     """
     Publish danh sách điểm lên RViz.
     :param points: List các tuple (x, y, z)

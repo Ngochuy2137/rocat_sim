@@ -33,7 +33,7 @@ def shutdown_node():
 global_printer = Printer()
 global_plotter = Plotter()
 class ThrowManager:
-    def __init__(self):
+    def __init__(self, object_name):
         # Initialize ROS node
         rospy.init_node('throw_manager', anonymous=True)
 
@@ -48,7 +48,7 @@ class ThrowManager:
         self.DATA_WITH_Y_UP = True
 
         # Environment variables and data directories
-        data_dir = os.path.join(os.getenv('NAE_DATASET20'), 'ball', '3-data-augmented', 'data_plit')
+        data_dir = os.path.join(os.getenv('NAE_DATASET20'), object_name, '3-data-augmented', 'data_plit')
         self.data = self.load_trajectory_data(data_dir)
 
         # Publishers
@@ -238,5 +238,6 @@ class ThrowManager:
             pass
 
 if __name__ == '__main__':
-    manager = ThrowManager()
+    object_name = 'ball'    # ball big_sized_plane boomerang cardboard cookie_box
+    manager = ThrowManager(object_name)
     manager.run()

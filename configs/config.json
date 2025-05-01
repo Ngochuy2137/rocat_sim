@@ -7,8 +7,8 @@
     "predicted_impact_point_topic": "/NAE/impact_point",
     "rocat_sim": {
         "trigger_n_thow_time_gap_sim": 0.3,
-        "catching_distance": 0.7,
-        "catching_orientation_dev_deg_thres": 30
+        "catching_distance": 0.6,
+        "catching_orientation_dev_deg_thres": 20
     },
     "controller_tolerance_xy": [0.125, 0.1, 0.07, 0.05, 0.025],
     "catching_height": null

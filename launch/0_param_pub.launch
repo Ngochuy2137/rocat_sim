@@ -1,0 +1,4 @@
+<launch>
+    <!-- <rosparam file="$(find rocat_sim)/configs/config.json" command="load" /> -->
+    <rosparam file="$(find rocat_sim)/configs/config.yaml" command="load"/>
+</launch>

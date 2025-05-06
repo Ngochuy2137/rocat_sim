@@ -20,7 +20,6 @@ from rocat_sim.src.utils.utils import (
     publish_points_2rviz,
     publish_special_point,
     find_point_A,
-    Config,
     warn_beep
 )
 
@@ -38,10 +37,11 @@ class ThrowManager:
         rospy.init_node('throw_manager', anonymous=True)
 
         # Load configuration
-        rospack = rospkg.RosPack()
-        pkg_path = rospack.get_path('rocat_sim')
-        config_path = os.path.join(pkg_path, 'configs', 'config.json')
-        self.config = Config(config_path)
+        real_trajectory_viz_topic = rospy.get_param('real_trajectory_viz_topic')
+        trigger_dummy_run_topic = rospy.get_param('trigger_dummy_run_topic')
+        object_pose_z_up_viz_topic = rospy.get_param('object_pose_z_up_viz_topic')
+        object_topic = rospy.get_param('object_pose_topic')
+        self.trigger_n_thow_time_gap_sim = rospy.get_param('/rocat_sim_manager/trigger_n_thow_time_gap_sim')
 
         # Constants
         self.MAX_CATCH_DIST = 0.8
@@ -52,10 +52,10 @@ class ThrowManager:
         self.data = self.load_trajectory_data(data_dir)
 
         # Publishers
-        self.traj_pub = rospy.Publisher(f'/mocap_sim/ball', PoseStamped, queue_size=10)
-        self.marker_pub = rospy.Publisher(self.config.real_trajectory_topic, Marker, queue_size=10)
-        self.go1_trigger_pub = rospy.Publisher(self.config.trigger_topic, PoseStamped, queue_size=100)
-        self.object_pub = rospy.Publisher(self.config.realtime_object_pose_topic, PoseStamped, queue_size=10)
+        self.traj_pub = rospy.Publisher(object_topic, PoseStamped, queue_size=10)
+        self.marker_pub = rospy.Publisher(real_trajectory_viz_topic, Marker, queue_size=10)
+        self.go1_trigger_pub = rospy.Publisher(trigger_dummy_run_topic, PoseStamped, queue_size=100)
+        self.rviz_object_pub = rospy.Publisher(object_pose_z_up_viz_topic, PoseStamped, queue_size=10)
 
         # Service server
         # Service from robot controller node
@@ -168,14 +168,18 @@ class ThrowManager:
 
             global_printer.print_blue(f"\n{'='*25} TRIAL #{traj_idx} {'='*25}", background=True)
             print(f'    Updated new catching height {catching_height} ->')
-            # input('Press ENTER to continue to next trajectory')
+            input('Press ENTER to continue to next trajectory')
 
             # 4. Set robot to initial position
             # Calculate robot initial position
-            alpha = random.uniform(-self.config.rocat_sim_conf.catch_ori_dev_deg_thres,
-                                   self.config.rocat_sim_conf.catch_ori_dev_deg_thres)
+
+            # Load config for setting robot initial position
+            catch_ori_dev_deg_thres = rospy.get_param('/rocat_sim_manager/catching_orientation_dev_deg_thres')
+            catch_dist = rospy.get_param('/rocat_sim_manager/catching_distance')
+            alpha = random.uniform(-catch_ori_dev_deg_thres,
+                                   catch_ori_dev_deg_thres)
             init_pos = find_point_A(real_catching_point_with_z_up[0], real_catching_point_with_z_up[1], alpha_degree=alpha,
-                                    d=self.config.rocat_sim_conf.catch_dist)
+                                    d=catch_dist)
 
             # input(f"Press ENTER to reset robot to init position {init_pos}")
             # wait for second before new run
@@ -201,7 +205,7 @@ class ThrowManager:
             pose.header.frame_id = 'world'
             pose.pose.orientation.w = 1.0
             self.go1_trigger_pub.publish(pose)
-            rospy.sleep(self.config.rocat_sim_conf.trigger_n_thow_time_gap_sim) # sleep awhile after trigger
+            rospy.sleep(self.trigger_n_thow_time_gap_sim) # sleep awhile after trigger
 
             # Publish trajectory points in real-time
             rate = rospy.Rate(120)
@@ -217,7 +221,7 @@ class ThrowManager:
                 ps.pose.orientation.w = 1.0
 
                 self.traj_pub.publish(ps)
-                publish_special_point(x=point[1], y=-point[3], z=point[2], special_point_pub=self.object_pub)
+                publish_special_point(x=point[1], y=-point[3], z=point[2], special_point_pub=self.rviz_object_pub)   # rviz viz
                 rate.sleep()
 
                 dt = rospy.Time.now().to_sec() - time_now.to_sec()
@@ -238,6 +242,8 @@ class ThrowManager:
             pass
 
 if __name__ == '__main__':
-    object_name = 'ball'    # ball big_sized_plane boomerang cardboard cookie_box
+    object_name = 'cap'    # ball big_sized_plane boomerang cardboard cookie_box
+                                    # cookie_box water_bottle paper_cup noodle_cup cap
+    global_printer.print_blue(f"Starting throw manager for {object_name} ...", background=True)
     manager = ThrowManager(object_name)
     manager.run()

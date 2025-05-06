@@ -1,0 +1,56 @@
+# config.yaml
+robot_pose_topic: "/unitree_go1/pose"
+object_pose_topic: "/mocap_sim/ball"
+trigger_dummy_run_topic: "/mocap_pose_topic/chip_star_pose"
+predicted_impact_point_topic: "/NAE/impact_point"
+
+real_trajectory_viz_topic: "/rviz_flying_object_trajectory"
+object_pose_z_up_viz_topic: "/rviz_flying_object"
+realtime_basket_pose_viz_topic: "/rviz_basket_pose"
+
+
+trajectory_predictor:
+  predict_schedule_step: 2
+  ignore_first_predictions: 4
+  rate: 20
+  pub_impact_point_with_z_up: true
+
+rocat_sim_manager:
+  trigger_n_thow_time_gap_sim: 0.3
+  catching_distance: 0.8
+  catching_orientation_dev_deg_thres: 20
+  
+impact_checker:
+  control_tolerance_xy:
+    - 0.125
+    - 0.1
+    - 0.07
+    - 0.05
+    - 0.025
+
+high_level_controller:
+  gait_type: 2
+  rate: 50
+  control_tolerance_xy: 0.05
+  modify_z_up_goal: false
+  modify_z_up_robot_pose: false
+  dummy_run_time: 1.0
+  dummy_run_vel: 0.4
+  max_control_time: 10.0
+  active_zone_x: [-1000, 1000]
+  active_zone_y: [-1000, 1000]
+  dummy_zone_x: [-1000, 1000]
+  dummy_zone_y: [-1000, 1000]
+
+  pid_x: [2.5, 0.0, 0.0]
+  pid_y: [2.0, 0.0, 0.0]
+  pid_theta: [0.5, 0.0, 0.0]
+  deadband_xytheta: [0.0, 0.0, 3.0]
+
+  vx_range: [-1.0, 2.0]
+  vy_range: [-1.0, 1.0]
+  wz_range: [-1.0, 1.0]
+
+
+
+# catching_height: null

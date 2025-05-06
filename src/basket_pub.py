@@ -6,14 +6,6 @@ from nav_msgs.msg import Odometry
 from geometry_msgs.msg import PolygonStamped, Point32
 import rospkg
 import os
-from rocat_sim.src.utils.utils import Config
-
-# Load global config
-rospack = rospkg.RosPack()
-package_path = rospack.get_path('rocat_sim')  # Tên package của bạn
-json_file_path = os.path.join(package_path, 'configs/config.json')
-print(f'json_file_path: {json_file_path}')
-global_config = Config(json_file_path)
 
 # Bán kính basket
 BASKET_RADIUS = 0.125  # Đơn vị: mét
@@ -23,12 +15,12 @@ NUM_POINTS = 20  # Số điểm trên đường tròn
 class BasketPublisher:
     def __init__(self):
         rospy.init_node("basket_publisher", anonymous=True)
-
+        robot_pose_topic = rospy.get_param('robot_pose_topic')
+        basket_pose_topic = rospy.get_param('realtime_basket_pose_viz_topic')
         # Subscribe vào topic Odometry của robot để lấy vị trí
-        self.odom_sub = rospy.Subscriber(global_config.realtime_robot_pose_topic, Odometry, self.odom_callback)
-
+        self.odom_sub = rospy.Subscriber(robot_pose_topic, Odometry, self.odom_callback)
         # Publisher để xuất basket dưới dạng PolygonStamped
-        self.basket_pub = rospy.Publisher(global_config.realtime_basket_pose_topic, PolygonStamped, queue_size=10)
+        self.basket_pub = rospy.Publisher(basket_pose_topic, PolygonStamped, queue_size=10)
 
     def odom_callback(self, msg):
         """Hàm callback nhận dữ liệu từ topic Odometry để cập nhật basket."""

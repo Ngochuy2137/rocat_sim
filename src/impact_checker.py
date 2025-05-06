@@ -6,26 +6,20 @@ from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Point, PoseStamped
 from python_utils.printer import Printer
 from std_srvs.srv import SetBool, SetBoolResponse
-from rocat_sim.src.utils.utils import Config, warn_beep
+from rocat_sim.src.utils.utils import warn_beep
 import os
 import rospkg
 import numpy as np
 import datetime
 import threading
+# package_path
+rospack = rospkg.RosPack()
+package_path = rospack.get_path('rocat_sim')
 
 # Load global config
-rospack = rospkg.RosPack()
-package_path = rospack.get_path('rocat_sim')  # Tên package của bạn
-json_file_path = os.path.join(package_path, 'configs/config.json')
-print(f'json_file_path: {json_file_path}')
-GLOBAL_CONFIG = Config(json_file_path)
+TOLERANCE_XY_LIST = rospy.get_param('/impact_checker/control_tolerance_xy') # Ngưỡng sai số để kiểm tra va chạm
 
 global_printer = Printer()
-
-# Ngưỡng sai số để kiểm tra va chạm
-TOLERANCE_XY_LIST = np.array(GLOBAL_CONFIG.controller_tolerance_xy)
-# CATCHING_HEIGHT = GLOBAL_CONFIG.catching_height
-
 
 def shutdown_node():
     rospy.loginfo("Shutting down the node...")
@@ -50,8 +44,11 @@ class ImpactChecker:
         rospy.init_node("impact_checker", anonymous=True)
 
         # Subscribe vào topic vị trí robot (Odometry) và vật thể (Point)
-        self.robot_sub = rospy.Subscriber(GLOBAL_CONFIG.realtime_robot_pose_topic, Odometry, self.robot_callback)
-        self.object_sub = rospy.Subscriber(GLOBAL_CONFIG.realtime_object_pose_topic, PoseStamped, self.object_callback)
+        robot_topic = rospy.get_param('robot_pose_topic')
+        object_topic = rospy.get_param('object_pose_z_up_viz_topic')
+
+        self.robot_sub = rospy.Subscriber(robot_topic, Odometry, self.robot_callback)
+        self.object_sub = rospy.Subscriber(object_topic, PoseStamped, self.object_callback)
 
         self.trial_count = 0
         # self.success_count = 0

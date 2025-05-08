@@ -2,8 +2,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np  # cần import thêm numpy
 
-file_path = '/home/huynn/huynn_ws/robot_catching_ws/rocat_ws/src/rocat_sim/results/NAE/cookie_box.xlsx'
-object_name = 'cookie_box'
+object_name = 'cap'
+file_path = f'/home/huynn/huynn_ws/robot_catching_ws/rocat_ws/src/rocat_sim/results/config-2/NAE/unseen/{object_name}.xlsx'
 
 df = pd.read_excel(file_path, usecols=[0, 1, 2, 3], names=['X1', 'Y1', 'X2', 'Y2'])
 df = df.dropna(subset=['X1', 'Y1', 'X2', 'Y2'])

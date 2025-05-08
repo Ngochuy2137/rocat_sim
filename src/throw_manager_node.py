@@ -75,6 +75,9 @@ class ThrowManager:
         rospy.wait_for_service('/ask_if_robot_is_free_srv', timeout=10)
         self.ask_robot_controller_client = rospy.ServiceProxy('/ask_if_robot_is_free_srv', SetBool)
 
+        rospy.wait_for_service('/stop_robot_srv', timeout=10)
+        self.stop_robot_client = rospy.ServiceProxy('/stop_robot_srv', SetBool)
+
         # 3. NAE predictor
         rospy.wait_for_service('NAE/trigger_new_prediction', timeout=10)
         self.trigger_nae_predictor_client = rospy.ServiceProxy('NAE/trigger_new_prediction', SetBool)
@@ -103,6 +106,17 @@ class ThrowManager:
             return resp.success
         except rospy.ServiceException as e:
             global_printer.print_red(f"     Ask robot controller failed: {e}")
+            return False
+        
+    def send_stop_robot_srv(self):
+        """Call the stop service to stop the robot."""
+        global_printer.print_green("-> ROBOT CONTROLLER: Sending STOP signal (/stop_robot_srv) to robot controller...")
+        try:
+            req = SetBoolRequest(data=True)
+            resp = self.stop_robot_client(req)
+            return resp.success
+        except rospy.ServiceException as e:
+            global_printer.print_red(f"     Stop robot controller failed: {e}")
             return False
         
     def send_trigger_nae_predictor_srv(self):
@@ -228,6 +242,8 @@ class ThrowManager:
                     freq = 1/dt
                     if abs(freq - 120) > 5:
                         global_printer.print_red(f"WARNING: Real rate is {freq:.2f} Hz")
+            
+            self.send_stop_robot_srv()
 
     def load_trajectory_data(self, data_dir):
         loader = NAEDataLoader()

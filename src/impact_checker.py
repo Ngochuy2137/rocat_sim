@@ -119,7 +119,7 @@ class ImpactChecker:
                 if rospy.Time.now().to_sec()- time_start > 1/self.rate_hz:
                     global_printer.print_purple(f"       Checking takes so long time: {rospy.Time.now().to_sec()- time_start}")
                 
-                print(f'This trial result: {this_trial_result}')
+                print(f'This trial result: {this_trial_result} - DIST: {dis_xy}')
                 self.success_matrix.append(this_trial_result)
 
 
@@ -133,7 +133,10 @@ class ImpactChecker:
                 try:
                     result_folder = os.path.join(package_path, 'results')
                     os.makedirs(result_folder, exist_ok=True)
-                    file_path = os.path.join(result_folder, f'impact_checker-{self.time_start}.txt')
+                    # update object name, model name from param server
+                    object_name = rospy.get_param('/object_name')
+                    model_name = rospy.get_param('/model_name')
+                    file_path = os.path.join(result_folder, f'impact_checker-{self.time_start}-{object_name}-{model_name}.txt')
                     with open(file_path, 'a') as f:
                         f.write(f"Trial {self.trial_count} result: {this_trial_result}\n")
                         f.write(f"Success percentage: {success_percentage}\n")

@@ -61,11 +61,10 @@ class ThrowManager:
         # Service from robot controller node
         rospy.Service('/robot_reached_goal_srv', SetBool, self.handle_robot_reach_goal_srv)
 
+        # delete param catching height if it exists, will be set again in publish_trajectories
         if rospy.has_param('/catching_height'):
             rospy.delete_param('/catching_height')
             print("Deleted param /catching_height")
-        else:
-            print("Param /catching_height does not exist")
         
         # Service clients        
         # 1. Impact checker
@@ -168,7 +167,7 @@ class ThrowManager:
 
             global_printer.print_blue(f"\n{'='*25} TRIAL #{traj_idx} {'='*25}", background=True)
             print(f'    Updated new catching height {catching_height} ->')
-            input('Press ENTER to continue to next trajectory')
+            # input('Press ENTER to continue to next trajectory')
 
             # 4. Set robot to initial position
             # Calculate robot initial position
@@ -242,8 +241,14 @@ class ThrowManager:
             pass
 
 if __name__ == '__main__':
-    object_name = 'cap'    # ball big_sized_plane boomerang cardboard cookie_box
-                                    # cookie_box water_bottle paper_cup noodle_cup cap
+    # object_name = 'cap'    # ball big_sized_plane boomerang cardboard cookie_box
+    #                         # cookie_box water_bottle paper_cup noodle_cup cap
+    object_name = rospy.get_param('object_name')
+    global_printer.print_green(f'{"="*25} LOADED PARAMS {"="*25}', background=True)
+    print('    object_name:', object_name)
+
+    # update object name to param server
     global_printer.print_blue(f"Starting throw manager for {object_name} ...", background=True)
     manager = ThrowManager(object_name)
     manager.run()
+    warn_beep(3)

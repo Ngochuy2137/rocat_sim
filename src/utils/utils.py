@@ -337,7 +337,11 @@ def publish_marker_list_2gzb(points, model_name='marker_sphere', color='red', si
 def publish_marker_list_2rviz(points,
                               topic_name='NAE/impact_point_list',
                               size=0.05,
-                              text_height=0.02):
+                              text_height=0.02, this_data_is_y_up=False):
+    
+    if this_data_is_y_up:
+        points = [[p[0], -p[2], p[1]] for p in points]
+
     # Publisher for a MarkerArray, latched so RViz can grab it even if it connects later
     pub = rospy.Publisher(topic_name, MarkerArray, queue_size=1, latch=True)
     rospy.sleep(0.1)  # give publisher a moment to register

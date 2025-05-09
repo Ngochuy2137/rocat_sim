@@ -75,12 +75,16 @@ class ThrowManager:
         rospy.wait_for_service('/ask_if_robot_is_free_srv', timeout=10)
         self.ask_robot_controller_client = rospy.ServiceProxy('/ask_if_robot_is_free_srv', SetBool)
 
-        rospy.wait_for_service('/stop_robot_srv', timeout=10)
-        self.stop_robot_client = rospy.ServiceProxy('/stop_robot_srv', SetBool)
+        rospy.wait_for_service('/stop_control_session_srv', timeout=10)
+        self.stop_control_client = rospy.ServiceProxy('/stop_control_session_srv', SetBool)
 
         # 3. NAE predictor
         rospy.wait_for_service('NAE/trigger_new_prediction', timeout=10)
         self.trigger_nae_predictor_client = rospy.ServiceProxy('NAE/trigger_new_prediction', SetBool)
+
+        rospy.wait_for_service('NAE/stop_prediction_session_srv', timeout=10)
+        self.stop_prediction_client = rospy.ServiceProxy('NAE/stop_prediction_session_srv', SetBool)
+
 
         self.already_asked_last_result = False # this var is to guarantee that asking for last result before reset the impact checker
 
@@ -108,15 +112,26 @@ class ThrowManager:
             global_printer.print_red(f"     Ask robot controller failed: {e}")
             return False
         
-    def send_stop_robot_srv(self):
+    def send_stop_control_session_srv(self):
         """Call the stop service to stop the robot."""
-        global_printer.print_green("-> ROBOT CONTROLLER: Sending STOP signal (/stop_robot_srv) to robot controller...")
+        global_printer.print_green("-> ROBOT CONTROLLER: Sending STOP signal (/stop_control_session_srv) to robot controller...")
         try:
             req = SetBoolRequest(data=True)
-            resp = self.stop_robot_client(req)
+            resp = self.stop_control_client(req)
             return resp.success
         except rospy.ServiceException as e:
             global_printer.print_red(f"     Stop robot controller failed: {e}")
+            return False
+        
+    def send_stop_prediction_session_srv(self):
+        """Call the stop service to stop the NAE predictor."""
+        global_printer.print_green("-> NAE PREDICTOR: Sending STOP signal (NAE/stop_prediction_session_srv) to NAE predictor...")
+        try:
+            req = SetBoolRequest(data=True)
+            resp = self.stop_prediction_client(req)
+            return resp.success
+        except rospy.ServiceException as e:
+            global_printer.print_red(f"     Stop NAE predictor failed: {e}")
             return False
         
     def send_trigger_nae_predictor_srv(self):
@@ -234,7 +249,7 @@ class ThrowManager:
                 ps.pose.orientation.w = 1.0
 
                 self.traj_pub.publish(ps)
-                publish_special_point(x=point[1], y=-point[3], z=point[2], special_point_pub=self.rviz_object_pub)   # rviz viz
+                publish_special_point(x=point[1], y=-point[3], z=point[2], special_point_pub=self.rviz_object_pub)   # only for rviz viz
                 rate.sleep()
 
                 dt = rospy.Time.now().to_sec() - time_now.to_sec()
@@ -243,7 +258,8 @@ class ThrowManager:
                     if abs(freq - 120) > 5:
                         global_printer.print_red(f"WARNING: Real rate is {freq:.2f} Hz")
             
-            self.send_stop_robot_srv()
+            self.send_stop_control_session_srv()
+            self.send_stop_prediction_session_srv()
 
     def load_trajectory_data(self, data_dir):
         loader = NAEDataLoader()

@@ -72,15 +72,15 @@ class ThrowManager:
         self.trigger_impact_checker_client = rospy.ServiceProxy('/trigger_impact_checker_srv', SetBool)
 
         # 2. Robot controller
-        rospy.wait_for_service('/ask_if_robot_is_free_srv', timeout=10)
-        self.ask_robot_controller_client = rospy.ServiceProxy('/ask_if_robot_is_free_srv', SetBool)
+        rospy.wait_for_service('/ask_if_robot_is_ready_srv', timeout=10)
+        self.ask_robot_controller_client = rospy.ServiceProxy('/ask_if_robot_is_ready_srv', SetBool)
 
         rospy.wait_for_service('/stop_control_session_srv', timeout=10)
         self.stop_control_client = rospy.ServiceProxy('/stop_control_session_srv', SetBool)
 
         # 3. NAE predictor
-        rospy.wait_for_service('NAE/trigger_new_prediction', timeout=10)
-        self.trigger_nae_predictor_client = rospy.ServiceProxy('NAE/trigger_new_prediction', SetBool)
+        rospy.wait_for_service('NAE/ask_if_predictor_is_ready_srv', timeout=10)
+        self.trigger_nae_predictor_client = rospy.ServiceProxy('NAE/ask_if_predictor_is_ready_srv', SetBool)
 
         rospy.wait_for_service('NAE/stop_prediction_session_srv', timeout=10)
         self.stop_prediction_client = rospy.ServiceProxy('NAE/stop_prediction_session_srv', SetBool)
@@ -90,7 +90,7 @@ class ThrowManager:
 
     def send_trigger_impact_checker_srv(self, ):
         """Call the trigger service to trigger the impact checker trigger."""
-        global_printer.print_green("-> IMPACT CHECKER: Sending trigger signal to impact checker...")
+        print("-> IMPACT CHECKER: Sending trigger signal to impact checker...")
         try:
             req = SetBoolRequest(data=True)
             resp = self.trigger_impact_checker_client(req)
@@ -100,9 +100,9 @@ class ThrowManager:
             rospy.logerr(f"trigger service call failed: {e}")
             return False
 
-    def send_ask_robot_srv(self):
+    def send_ask_if_robot_ready_srv(self):
         """Call the ask service to check if the robot is free."""
-        global_printer.print_green("-> ROBOT CONTROLLER: Asking if robot is free...")
+        print("\n-> ROBOT CONTROLLER: Asking if robot is free...")
         try:
             req = SetBoolRequest(data=False)
             resp = self.ask_robot_controller_client(req)
@@ -114,7 +114,7 @@ class ThrowManager:
         
     def send_stop_control_session_srv(self):
         """Call the stop service to stop the robot."""
-        global_printer.print_green("-> ROBOT CONTROLLER: Sending STOP signal (/stop_control_session_srv) to robot controller...")
+        print("\n-> ROBOT CONTROLLER: Sending STOP signal (/stop_control_session_srv) to robot controller...")
         try:
             req = SetBoolRequest(data=True)
             resp = self.stop_control_client(req)
@@ -125,7 +125,7 @@ class ThrowManager:
         
     def send_stop_prediction_session_srv(self):
         """Call the stop service to stop the NAE predictor."""
-        global_printer.print_green("-> NAE PREDICTOR: Sending STOP signal (NAE/stop_prediction_session_srv) to NAE predictor...")
+        print("\n-> NAE PREDICTOR: Sending STOP signal (NAE/stop_prediction_session_srv) to NAE predictor...")
         try:
             req = SetBoolRequest(data=True)
             resp = self.stop_prediction_client(req)
@@ -136,7 +136,7 @@ class ThrowManager:
         
     def send_trigger_nae_predictor_srv(self):
         """Call the trigger service to trigger the NAE predictor."""
-        global_printer.print_green("-> NAE PREDICTOR: Asking if NAE predictor is ready for new prediction ...")
+        print("\n-> NAE PREDICTOR: Asking if NAE predictor is ready for new prediction ...- SRV: NAE/ask_if_predictor_is_ready_srv")
         try:
             req = SetBoolRequest(data=False)
             resp = self.trigger_nae_predictor_client(req)
@@ -155,7 +155,7 @@ class ThrowManager:
             warn_beep(5)
             shutdown_node()
         
-        global_printer.print_green("        Received INFO robot reach goal signal")
+        print("        Received INFO robot reach goal signal")
         rospy.sleep(1)
         return SetBoolResponse(success=True, message="Thank you for the signal")
 
@@ -167,7 +167,7 @@ class ThrowManager:
             traj = self.data[traj_idx % n]
             if rospy.is_shutdown():
                 break
-
+            global_printer.print_blue(f"\n{'='*25} TRIAL #{traj_idx} {'='*25}", background=True)
             # 1. Check trajectory shape
             if traj.shape[1] != 4:
                 raise ValueError('Trajectory point must have 4 dimensions (t, x, y, z)')
@@ -184,8 +184,8 @@ class ThrowManager:
             rospy.set_param('/real_catching_point_with_z_up', real_catching_point_with_z_up)
 
             # 3. Check if components are ready
-            while not self.send_ask_robot_srv():
-                global_printer.print_yellow("       Waiting for Robot controller free")
+            while not self.send_ask_if_robot_ready_srv():
+                global_printer.print_yellow("       Waiting for Robot controller ready")
                 rospy.sleep(1)
             while not self.send_trigger_nae_predictor_srv():
                 global_printer.print_yellow("       Waiting for NAE predictor ready for new prediction")
@@ -194,8 +194,8 @@ class ThrowManager:
                 global_printer.print_yellow("       Waiting for Impact checker reset")
                 rospy.sleep(1)
 
-            global_printer.print_blue(f"\n{'='*25} TRIAL #{traj_idx} {'='*25}", background=True)
             print(f'    Updated new catching height {catching_height} ->')
+            print(f'    Trajectory length: {len(traj)}')
             # input('Press ENTER to continue to next trajectory')
 
             # 4. Set robot to initial position

@@ -5,6 +5,8 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
+        - /Grid1
+        - /Basket1
       Splitter Ratio: 0.4588235318660736
     Tree Height: 1062
   - Class: rviz/Selection
@@ -33,7 +35,7 @@ Visualization Manager:
   Class: ""
   Displays:
     - Alpha: 0.5
-      Cell Size: 1
+      Cell Size: 0.10000000149011612
       Class: rviz/Grid
       Color: 211; 215; 207
       Enabled: true
@@ -67,7 +69,7 @@ Visualization Manager:
           Scale: 1
           Value: true
         Value: true
-      Enabled: true
+      Enabled: false
       Keep: 1
       Name: robot pose
       Position Tolerance: 0.10000000149011612
@@ -84,25 +86,25 @@ Visualization Manager:
         Value: Axes
       Topic: /unitree_go1/pose
       Unreliable: false
-      Value: true
+      Value: false
     - Alpha: 1
       Class: rviz/Polygon
       Color: 252; 175; 62
       Enabled: true
       Name: Basket
       Queue Size: 10
-      Topic: /unitree_go1/basket_pose
+      Topic: rviz_basket_pose
       Unreliable: false
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /flying_object_trajectory
+      Marker Topic: rviz_flying_object_trajectory
       Name: Trajectory
       Namespaces:
         {}
       Queue Size: 1
       Value: true
-    - Alpha: 0.5
+    - Alpha: 1
       Axes Length: 0.05000000074505806
       Axes Radius: 0.009999999776482582
       Class: rviz/Pose
@@ -115,7 +117,7 @@ Visualization Manager:
       Shaft Length: 0
       Shaft Radius: 0.05000000074505806
       Shape: Arrow
-      Topic: /flying_object
+      Topic: rviz_flying_object
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -153,9 +155,10 @@ Visualization Manager:
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: NAE/impact_point_list
-      Name: MarkerArray
+      Name: impact point list
       Namespaces:
-        {}
+        labels: true
+        pts: true
       Queue Size: 1
       Value: true
   Enabled: true
@@ -185,7 +188,7 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Angle: -0.00499988067895174
+      Angle: -1.862645149230957e-08
       Class: rviz/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
@@ -195,10 +198,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 164.4940185546875
+      Scale: 281.60040283203125
       Target Frame: <Fixed Frame>
-      X: 2.660112142562866
-      Y: -1.584120512008667
+      X: 1.0136281251907349
+      Y: -1.6879069805145264
     Saved: ~
 Window Geometry:
   Displays:

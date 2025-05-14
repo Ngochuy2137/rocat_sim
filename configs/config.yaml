@@ -11,13 +11,13 @@ realtime_basket_pose_viz_topic: "/rviz_basket_pose"
 
 trajectory_predictor:
   predict_schedule_step: 2
-  ignore_first_predictions: 4
+  ignore_first_predictions: 0
   rate: 20
   pub_impact_point_with_z_up: true
 
 rocat_sim_manager:
   trigger_n_thow_time_gap_sim: 0.3
-  catching_distance: 0.8
+  catching_distance: 0.6
   catching_orientation_dev_deg_thres: 20
   
 impact_checker:
@@ -35,7 +35,7 @@ high_level_controller:
   modify_z_up_goal: false
   modify_z_up_robot_pose: false
   dummy_run_time: 1.0
-  dummy_run_vel: 0.4
+  dummy_run_vel: 0.3
   max_control_time: 10.0
   active_zone_x: [-1000, 1000]
   active_zone_y: [-1000, 1000]
@@ -54,3 +54,17 @@ high_level_controller:
 
 
 # catching_height: null
+
+# ## NAE
+# model_dir: '/home/huynn/huynn_ws/trajectory_prediction/nae_static/training_scripts/V-general-except-U-N-J-Q-O/models/V-3-1-PC3-general-except-U-N-J-Q-O-in30-out10_model'
+# model_epoch_idx: 30000 
+# model_name: 'NAE'
+
+## LSTMencoder
+model_dir: '/home/huynn/huynn_ws/trajectory_prediction/nae_static/training_scripts/0-Phase-2/LSTMencoder/Vph2-v0-1-PCNAIST-server-GEN-EXCEPT-U-N-J-Q-O-lstmENCODER-in30-out10_model'
+model_epoch_idx: best_model_ade 
+model_name: 'LSTMencoder'
+
+object_name: boomerang    # cookie_box water_bottle paper_cup noodle_cup cap
+                          # ball big_sized_plane boomerang cardboard ring_frisbee
+                          

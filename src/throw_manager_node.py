@@ -57,6 +57,8 @@ class ThrowManager:
         self.go1_trigger_pub = rospy.Publisher(trigger_dummy_run_topic, PoseStamped, queue_size=100)
         self.rviz_object_pub = rospy.Publisher(object_pose_z_up_viz_topic, PoseStamped, queue_size=10)
 
+        self.traj_id_start = rospy.get_param('traj_id_start', 0)  # 0 là giá trị mặc định nếu param không có
+
         # Service server
         # Service from robot controller node
         rospy.Service('/robot_reached_goal_srv', SetBool, self.handle_robot_reach_goal_srv)
@@ -161,9 +163,9 @@ class ThrowManager:
 
     def publish_trajectories(self):
         n = len(self.data)
-        trial_num_target = max(n, 100)
+        trial_num_target = max(self.traj_id_start, 100)
         # for traj_idx, traj in enumerate(self.data):
-        for traj_idx in range(trial_num_target):
+        for traj_idx in range(9, trial_num_target):
             traj = self.data[traj_idx % n]
             if rospy.is_shutdown():
                 break

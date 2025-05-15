@@ -47,44 +47,6 @@ def warn_beep(iter):
         time.sleep(0.5)
 
 
-# class RocatSimConf:
-#     def __init__(self,):
-#         self.trigger_n_thow_time_gap_sim = None
-#         self.catch_dist = None
-#         self.catch_ori_dev_deg_thres = None
-
-# class TrajectoryPredictorConf:
-#     def __init__(self,):
-#         self.predict_schedule_step = None
-#         self.ignore_first_predictions = 0
-
-# class Config:
-#     def __init__(self, json_file_path):
-#         with open(json_file_path, 'r') as f:
-#             data = json.load(f)
-
-#         self.object_topic = data.get("object_topic")
-#         self.trigger_topic = data.get("trigger_topic")
-#         self.real_trajectory_topic = data.get("real_trajectory_topic")
-#         self.object_pose_z_up_viz_topic = data.get("object_pose_z_up_viz_topic")
-#         self.robot_pose_topic = data.get("robot_pose_topic")
-#         self.realtime_basket_pose_topic = data.get("realtime_basket_pose_topic")
-#         self.predicted_impact_point_topic = data.get("predicted_impact_point_topic")
-
-#         # Lấy dict rocat_sim
-#         self.rocat_sim_conf = RocatSimConf()
-#         rocat_sim = data.get("rocat_sim", {})
-#         self.rocat_sim_conf.trigger_n_thow_time_gap_sim = rocat_sim.get("trigger_n_thow_time_gap_sim")
-#         self.rocat_sim_conf.catch_dist = rocat_sim.get("catching_distance")
-#         self.rocat_sim_conf.catch_ori_dev_deg_thres = rocat_sim.get("catching_orientation_dev_deg_thres")
-#         self.controller_tolerance_xy = data.get("controller_tolerance_xy")
-#         self.catching_height = data.get("catching_height")
-
-#         self.trajectory_predictor_conf = TrajectoryPredictorConf()
-#         traj_pred_conf = data.get("trajectory_predictor", {})
-#         self.trajectory_predictor_conf.predict_schedule_step = traj_pred_conf.get("predict_schedule_step")
-#         self.trajectory_predictor_conf.ignore_first_predictions = traj_pred_conf.get("ignore_first_predictions")
-
 def reset_robot(x_init=0.0, y_init=0.0, z_init=0.45, roll_init=0.0, pitch_init=0.0, yaw_init=0.0):
     rospy.wait_for_service("/gazebo/set_model_state", timeout=2)
     try:

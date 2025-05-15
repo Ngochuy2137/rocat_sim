@@ -2,11 +2,11 @@
   <!-- Define argument with default -->
   <arg name="traj_id_start" default="0" />
 
-  <!-- Set the parameter to ROS parameter server -->
-  <param name="traj_id_start" value="$(arg traj_id_start)" />
-
   <include file="$(find rocat_sim)/launch/0_param_pub.launch" />
   <param name="use_sim_time" value="true"/>
 
-  <node pkg="rocat_sim" type="throw_manager_node.py" name="throw_manager_node" output="screen" />
+  <node pkg="rocat_sim" type="throw_manager_node.py" name="throw_manager_node" output="screen" >
+    <param name="traj_id_start" value="$(arg traj_id_start)" />
+  </node>
+  
 </launch>

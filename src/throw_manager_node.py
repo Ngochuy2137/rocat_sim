@@ -40,7 +40,7 @@ class ThrowManager:
         real_trajectory_viz_topic = rospy.get_param('real_trajectory_viz_topic')
         trigger_dummy_run_topic = rospy.get_param('trigger_dummy_run_topic')
         object_pose_z_up_viz_topic = rospy.get_param('object_pose_z_up_viz_topic')
-        object_topic = rospy.get_param('object_pose_topic')
+        object_topic_y_up = rospy.get_param('object_pose_y_up_topic')
         self.trigger_n_thow_time_gap_sim = rospy.get_param('/rocat_sim_manager/trigger_n_thow_time_gap_sim')
 
         # Constants
@@ -52,7 +52,7 @@ class ThrowManager:
         self.data = self.load_trajectory_data(data_dir)
 
         # Publishers
-        self.traj_pub = rospy.Publisher(object_topic, PoseStamped, queue_size=10)
+        self.traj_pub = rospy.Publisher(object_topic_y_up, PoseStamped, queue_size=10)
         self.marker_pub = rospy.Publisher(real_trajectory_viz_topic, Marker, queue_size=10)
         self.go1_trigger_pub = rospy.Publisher(trigger_dummy_run_topic, PoseStamped, queue_size=100)
         self.rviz_object_pub = rospy.Publisher(object_pose_z_up_viz_topic, PoseStamped, queue_size=10)

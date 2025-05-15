@@ -15,10 +15,10 @@ NUM_POINTS = 20  # Số điểm trên đường tròn
 class BasketPublisher:
     def __init__(self):
         rospy.init_node("basket_publisher", anonymous=True)
-        robot_pose_topic = rospy.get_param('robot_pose_topic')
+        robot_pose_z_up_topic = rospy.get_param('robot_pose_z_up_topic')
         basket_pose_topic = rospy.get_param('realtime_basket_pose_viz_topic')
         # Subscribe vào topic Odometry của robot để lấy vị trí
-        self.odom_sub = rospy.Subscriber(robot_pose_topic, Odometry, self.odom_callback)
+        self.odom_sub = rospy.Subscriber(robot_pose_z_up_topic, Odometry, self.odom_callback)
         # Publisher để xuất basket dưới dạng PolygonStamped
         self.basket_pub = rospy.Publisher(basket_pose_topic, PolygonStamped, queue_size=10)
 

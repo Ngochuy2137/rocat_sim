@@ -44,11 +44,11 @@ class ImpactChecker:
         rospy.init_node("impact_checker", anonymous=True)
 
         # Subscribe vào topic vị trí robot (Odometry) và vật thể (Point)
-        robot_topic = rospy.get_param('robot_pose_topic')
-        object_topic = rospy.get_param('object_pose_z_up_viz_topic')
+        robot_pose_z_up_topic = rospy.get_param('robot_pose_z_up_topic')
+        object_pose_z_up_topic = rospy.get_param('object_pose_z_up_viz_topic')
 
-        self.robot_sub = rospy.Subscriber(robot_topic, Odometry, self.robot_callback)
-        self.object_sub = rospy.Subscriber(object_topic, PoseStamped, self.object_callback)
+        self.robot_sub = rospy.Subscriber(robot_pose_z_up_topic, Odometry, self.robot_callback)
+        self.object_sub = rospy.Subscriber(object_pose_z_up_topic, PoseStamped, self.object_callback)
 
         self.trial_count = 0
         # self.success_count = 0

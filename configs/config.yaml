@@ -1,8 +1,13 @@
 # config.yaml
-robot_pose_topic: "/unitree_go1/pose"
-object_pose_topic: "/mocap_sim/ball"
+# robot_pose_topic: "/unitree_go1/pose"
+robot_pose_y_up_topic: "/mocap_pose_topic/go1_2_pose"
+robot_pose_z_up_topic: "/mocap_pose_topic/go1_2_pose_z_up"
+# object_pose_topic: "/mocap_sim/ball"
+object_pose_y_up_topic: "/flying_object/pose_y_up"
+object_pose_z_up_topic: "/flying_object/pose_z_up"
+
 trigger_dummy_run_topic: "/mocap_pose_topic/chip_star_pose"
-predicted_impact_point_topic: "/NAE/impact_point"
+predicted_impact_point_z_up_topic: "/NAE/impact_point"
 
 real_trajectory_viz_topic: "/rviz_flying_object_trajectory"
 object_pose_z_up_viz_topic: "/rviz_flying_object"

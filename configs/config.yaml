@@ -68,15 +68,20 @@ high_level_controller:
 # model_epoch_idx: 30000 
 # model_name: 'NAE'
 
-## NAE-ID
-model_dir : '/home/huynn/huynn_ws/trajectory_prediction/nae_static/training_scripts/V-general-except-U-N-J-Q-O/models/V-4-1-PC1-general-ONE-HOT-except-U-N-J-Q-O-in30-out10_model'
-model_epoch_idx : 29999
-model_name : 'NAE-ID'
+# ## NAE-ID
+# model_dir : '/home/huynn/huynn_ws/trajectory_prediction/nae_static/training_scripts/V-general-except-U-N-J-Q-O/models/V-4-1-PC1-general-ONE-HOT-except-U-N-J-Q-O-in30-out10_model'
+# model_epoch_idx : 29999
+# model_name : 'NAE-ID'
 
 # ## LSTMencoder
 # model_dir: '/home/huynn/huynn_ws/trajectory_prediction/nae_static/training_scripts/0-Phase-2/LSTMencoder/Vph2-v0-1-PCNAIST-server-GEN-EXCEPT-U-N-J-Q-O-lstmENCODER-in30-out10_model'
 # model_epoch_idx: best_model_ade 
 # model_name: 'LSTMencoder'
+
+## LSTMencoder-CLF
+model_dir: '/home/server-huynn/workspace/robot_catching_project/experiment/rocat_ws/src/rocat_sim/models/Vph4-v1-1-w1-PCNAIST-server-GEN-EXCEPT-U-N-J-Q-O-lstmENCODER-in30-out10_model'
+model_epoch_idx: best_model_ade 
+model_name: 'LSTMencoder-CLF-w1-1CLFlayer'
 
 object_name: boomerang    # cookie_box water_bottle paper_cup noodle_cup cap
                           # ball big_sized_plane boomerang cardboard ring_frisbee

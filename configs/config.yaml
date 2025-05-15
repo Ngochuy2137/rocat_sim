@@ -1,7 +1,7 @@
 # config.yaml
 # robot_pose_topic: "/unitree_go1/pose"
 robot_pose_y_up_topic: "/mocap_pose_topic/go1_2_pose"
-robot_pose_z_up_topic: "/mocap_pose_topic/go1_2_pose_z_up"
+robot_pose_z_up_topic: "/unitree_go1/pose"    # /unitree_go1/pose
 # object_pose_topic: "/mocap_sim/ball"
 object_pose_y_up_topic: "/flying_object/pose_y_up"
 object_pose_z_up_topic: "/flying_object/pose_z_up"

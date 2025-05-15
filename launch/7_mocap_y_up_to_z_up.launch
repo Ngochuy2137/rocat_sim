@@ -1,0 +1,5 @@
+<launch>
+    <include file="$(find rocat_sim)/launch/0_param_pub.launch" />
+    <node pkg="rocat_sim" type="mocap_y_up_to_z_up_node.py" name="mocap_y_up_to_z_up_node" output="screen" />
+
+</launch>

@@ -227,7 +227,7 @@ class ThrowManager:
             publish_points_2rviz(points_pub=self.marker_pub, points=traj_vis)
             # Delay before trigger
             global_printer.print_green('Waiting 2 seconds before triggering controller ...')
-            rospy.sleep(2)
+            rospy.sleep(6)
 
             # Trigger robot catch
             pose = PoseStamped()

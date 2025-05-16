@@ -157,8 +157,7 @@ Visualization Manager:
       Marker Topic: NAE/impact_point_list
       Name: impact point list
       Namespaces:
-        labels: true
-        pts: true
+        {}
       Queue Size: 1
       Value: true
   Enabled: true
@@ -220,4 +219,4 @@ Window Geometry:
     collapsed: true
   Width: 1280
   X: 1280
-  Y: 586
+  Y: 0

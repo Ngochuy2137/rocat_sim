@@ -22,6 +22,7 @@ trajectory_predictor:
   ignore_first_predictions: 0
   rate: 20
   pub_impact_point_with_z_up: true
+  interpolate_raw_pos_data: false
 
 rocat_sim_manager:
   trigger_n_thow_time_gap_sim: 0.3
@@ -64,26 +65,26 @@ high_level_controller:
 # catching_height: null
 
 # ## NAE
-# model_dir: '/home/huynn/huynn_ws/trajectory_prediction/nae_static/training_scripts/V-general-except-U-N-J-Q-O/models/V-3-1-PC3-general-except-U-N-J-Q-O-in30-out10_model'
+# model_dir: '/home/server-huynn/workspace/robot_catching_project/experiment/rocat_sim_ws/src/rocat_sim/models/V-3-1-PC3-general-except-U-N-J-Q-O-in30-out10_model'
 # model_epoch_idx: 30000 
 # model_name: 'NAE'
 
 # ## NAE-ID
-# model_dir : '/home/huynn/huynn_ws/trajectory_prediction/nae_static/training_scripts/V-general-except-U-N-J-Q-O/models/V-4-1-PC1-general-ONE-HOT-except-U-N-J-Q-O-in30-out10_model'
+# model_dir : '/home/server-huynn/workspace/robot_catching_project/experiment/rocat_sim_ws/src/rocat_sim/models/V-4-1-PC1-general-ONE-HOT-except-U-N-J-Q-O-in30-out10_model'
 # model_epoch_idx : 29999
 # model_name : 'NAE-ID'
 
-# ## LSTMencoder
-# model_dir: '/home/huynn/huynn_ws/trajectory_prediction/nae_static/training_scripts/0-Phase-2/LSTMencoder/Vph2-v0-1-PCNAIST-server-GEN-EXCEPT-U-N-J-Q-O-lstmENCODER-in30-out10_model'
-# model_epoch_idx: best_model_ade 
-# model_name: 'LSTMencoder'
-
-## LSTMencoder-CLF
-model_dir: '/home/huynn/huynn_ws/trajectory_prediction/nae_static/training_scripts/0-phase-4/models-phase-4-week-2-cont-train/Vph4-v1-1-w1-PCNAIST-server-GEN-EXCEPT-U-N-J-Q-O-lstmENCODER-in30-out10_model'
+## LSTMencoder
+model_dir: '/home/server-huynn/workspace/robot_catching_project/experiment/rocat_sim_ws/src/rocat_sim/models/Vph2-v0-1-PCNAIST-server-GEN-EXCEPT-U-N-J-Q-O-lstmENCODER-in30-out10_model'
 model_epoch_idx: best_model_ade 
-model_name: 'LSTMencoder-CLF-w1-1CLFlayer'
+model_name: 'LSTMencoder'
 
-object_name: ball     
+# ## LSTMencoder-CLF
+# model_dir: '/home/server-huynn/workspace/robot_catching_project/experiment/rocat_ws/src/rocat_sim/models/Vph4-v1-1-w1-PCNAIST-server-GEN-EXCEPT-U-N-J-Q-O-lstmENCODER-in30-out10_model'
+# model_epoch_idx: best_model_ade 
+# model_name: 'LSTMencoder-CLF-w1-1CLFlayer'
+
+object_name: big_sized_plane     
 # UNSEEN: cookie_box water_bottle paper_cup noodle_cup cap
                               # ball              
                               # big_sized_plane   

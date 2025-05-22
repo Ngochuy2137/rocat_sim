@@ -1,9 +1,10 @@
 <launch>
-    <param name="use_sim_time" value="true"/>
+    <rosparam file="$(find rocat_sim)/configs/config.yaml" command="load"/>
+    <arg name="no_cmd" default="false" />
 
     <!-- Controller -->
     <node pkg="unitree_navigation" type="pid_based_controller_node_sim.py" name="go1_control_node_sim" output="screen" >
-        <!-- <remap from="NAE/impact_point" to="/move_base_simple/goal"/> -->
+        <param name="no_cmd" value="$(arg no_cmd)" />
     </node>
 </launch>
 

@@ -1,6 +1,4 @@
 <launch>
-    <param name="use_sim_time" value="true"/>
-    
     <!-- NAE prediction -->
     <node pkg="nae_online_prediction" type="online_predict_node_sim.py" name="online_predict_node_sim" output="screen"  />
 

@@ -34,15 +34,13 @@ class ThrowManager:
 
         # Load configuration
         real_trajectory_viz_topic = rospy.get_param('real_trajectory_viz_topic')
-        trigger_dummy_run_topic = rospy.get_param('trigger_dummy_run_topic')
+        # trigger_dummy_run_topic = rospy.get_param('trigger_dummy_run_topic')
         object_pose_z_up_viz_topic = rospy.get_param('object_pose_z_up_viz_topic')
-        object_topic_y_up = rospy.get_param('object_pose_y_up_topic')
         self.using_real_robot = rospy.get_param('using_real_robot')
 
         # Publishers
-        self.traj_pub = rospy.Publisher(object_topic_y_up, PoseStamped, queue_size=10)
         self.marker_pub = rospy.Publisher(real_trajectory_viz_topic, Marker, queue_size=10)
-        self.go1_trigger_pub = rospy.Publisher(trigger_dummy_run_topic, PoseStamped, queue_size=100)
+        # self.go1_trigger_pub = rospy.Publisher(trigger_dummy_run_topic, PoseStamped, queue_size=100)
         self.rviz_object_pub = rospy.Publisher(object_pose_z_up_viz_topic, PoseStamped, queue_size=10)
         
         # Subscribers
@@ -55,10 +53,12 @@ class ThrowManager:
             self.real_trigger_threshold_x = rospy.get_param('rocat_sim_manager/real_trigger_threshold_x')
             self.active_zone_x = rospy.get_param('high_level_controller/active_zone_x')
             self.active_zone_y = rospy.get_param('high_level_controller/active_zone_y')
+        
+        self.max_session_time = rospy.get_param('max_session_time')  # seconds
 
         # Service server
         # Service from robot controller node
-        rospy.Service('/robot_reached_goal_srv', SetBool, self.handle_robot_reach_goal_srv)
+        # rospy.Service('/robot_reached_goal_srv', SetBool, self.handle_robot_reach_goal_srv)
 
         # delete param catching height if it exists, will be set again in publish_trajectories
         self.catching_height_real = rospy.get_param('catching_height_real')
@@ -69,8 +69,8 @@ class ThrowManager:
         #     self.trigger_impact_checker_client = rospy.ServiceProxy('/trigger_impact_checker_srv', SetBool)
 
         # 2. Robot controller
-        rospy.wait_for_service('/ask_if_robot_is_ready_srv', timeout=10)
-        self.ask_robot_controller_client = rospy.ServiceProxy('/ask_if_robot_is_ready_srv', SetBool)
+        rospy.wait_for_service('/allow_new_session_control_srv', timeout=10)
+        self.new_control_session_srv = rospy.ServiceProxy('/allow_new_session_control_srv', SetBool)
 
         rospy.wait_for_service('/stop_control_session_srv', timeout=10)
         self.stop_control_client = rospy.ServiceProxy('/stop_control_session_srv', SetBool)
@@ -96,12 +96,12 @@ class ThrowManager:
         self.real_object_pose.header = msg.header
         self.real_object_pose.pose = msg.pose.pose
 
-    def send_ask_if_robot_ready_srv(self):
+    def send_new_control_session_srv(self):
         """Call the ask service to check if the robot is free."""
         print("\n-> ROBOT CONTROLLER: Asking if robot is free...")
         try:
             req = SetBoolRequest(data=False)
-            resp = self.ask_robot_controller_client(req)
+            resp = self.new_control_session_srv(req)
             print(f"        Ask response: success={resp.success}, message='{resp.message}'")
             return resp.success
         except rospy.ServiceException as e:
@@ -143,17 +143,17 @@ class ThrowManager:
             return False
     
         
-    def handle_robot_reach_goal_srv(self, req: SetBoolRequest) -> SetBoolResponse:
-        """Service callback resetting the impact checker when robot reaches goal."""
-        print('request:', req)
-        if not req.data:
-            global_printer.print_red("Robot cannot reach goal, check simulation")
-            singer.warn_beep(5)
-            ros_node_handle.shutdown_node()
+    # def handle_robot_reach_goal_srv(self, req: SetBoolRequest) -> SetBoolResponse:
+    #     """Service callback resetting the impact checker when robot reaches goal."""
+        # print('request:', req)
+        # if not req.data:
+        #     global_printer.print_red("Robot cannot reach goal, check simulation")
+        #     singer.warn_beep(5)
+        #     ros_node_handle.shutdown_node()
         
-        print("        Received INFO robot reach goal signal")
-        rospy.sleep(1)
-        return SetBoolResponse(success=True, message="Thank you for the signal")
+        # print("        Received INFO robot reach goal signal")
+        # rospy.sleep(1)
+        # return SetBoolResponse(success=True, message="Thank you for the signal")
 
     def handle_catching_session(self):
         rospy.set_param('/catching_height', self.catching_height_real)    # height is y axis in this case
@@ -166,69 +166,63 @@ class ThrowManager:
             print('Press ENTER to start catching session. And wait a moment !')
             global_printer.print_blue(f"{'='*60}", background=True); input()
             # reset variables
-            done_trigger = False
+            # done_trigger = False
             self.real_object_pose = None
-            # loop inside a catching session
-            while not rospy.is_shutdown():
-                # 2. Check if components are ready
-                while not rospy.is_shutdown() and not self.send_ask_if_robot_ready_srv():
-                    global_printer.print_yellow("       Waiting for Robot controller ready")
-                    rospy.sleep(1)
+            # Inside a catching session
+            # 2. Check if components are ready
+            while not rospy.is_shutdown() and not self.send_trigger_nae_predictor_srv():
+                global_printer.print_yellow("       Waiting for NAE predictor ready for new prediction")
+                rospy.sleep(1)
 
-                while not rospy.is_shutdown() and not self.send_trigger_nae_predictor_srv():
-                    global_printer.print_yellow("       Waiting for NAE predictor ready for new prediction")
-                    rospy.sleep(1)
+            while not rospy.is_shutdown() and not self.send_new_control_session_srv():
+                global_printer.print_yellow("       Waiting for Robot controller ready")
+                rospy.sleep(1)
+            rospy.sleep(2)
+            singer.speak_espeak('THROW NOW', volume=1000)
+            print(('\n\n'))
+            global_printer.print_blue("       All components are ready, starting catching session ...")
+
+            rate = rospy.Rate(120)
+            count_loop_wait_object = 0
+            while not rospy.is_shutdown() and self.real_object_pose is None:
+                if count_loop_wait_object % 240 == 0:
+                    print(f'waiting for object pose from topic {rospy.get_param("object_pose_y_up_topic")} - {count_loop_wait_object}')
+                count_loop_wait_object += 1
+                rate.sleep()
+            
+            # 3.1 Wait until self.real_object_pose.pose.position.x >= self.real_trigger_threshold_x before triggering
+            rate = rospy.Rate(120)
+            count_loop_b4_fly = 0
+            while not rospy.is_shutdown() and (self.real_object_pose.pose.position.x < self.real_trigger_threshold_x):
+                # print every 1 second
+                if count_loop_b4_fly % 240 == 0:
+                    print(f'waiting for object passing trigger line ... current pose: [{self.real_object_pose.pose.position.x:.3f}, \
+                                                                                        {self.real_object_pose.pose.position.y:.3f}, \
+                                                                                        {self.real_object_pose.pose.position.z:.3f}]')
+                count_loop_b4_fly += 1
+                rate.sleep()
                 
-                print(('\n\n'))
-                global_printer.print_blue("       All components are ready, starting catching session ...")
+            trigger_time = rospy.Time.now()
+            singer.beep(duration = 0.1, freq = 100.0)
 
-                rate = rospy.Rate(120)
-                count_loop_wait_object = 0
-                while self.real_object_pose is None:
-                    if count_loop_wait_object % 240 == 0:
-                        print(f'waiting for object pose from topic {rospy.get_param("object_pose_y_up_topic")} - {count_loop_wait_object}')
-                    count_loop_wait_object += 1
-                    rate.sleep()
-                
-                # 3.1 Wait until self.real_object_pose.pose.position.x >= self.real_trigger_threshold_x before triggering
-                rate = rospy.Rate(120)
-                count_loop_b4_fly = 0
-                while not rospy.is_shutdown() and (self.real_object_pose.pose.position.x < self.real_trigger_threshold_x):
-                    # print every 1 second
-                    if count_loop_b4_fly % 240 == 0:
-                        print(f'waiting for object passing trigger line ... current pose: [{self.real_object_pose.pose.position.x:.3f}, \
-                                                                                            {self.real_object_pose.pose.position.y:.3f}, \
-                                                                                            {self.real_object_pose.pose.position.z:.3f}]')
-                    count_loop_b4_fly += 1
-                    rate.sleep()
-                    
-                # 3.2 Trigger robot catch
-                if not done_trigger:
-                    global_printer.print_green(f'trigger robot controller ... - {self.real_object_pose.pose.position.x:.3f}')
-                    pose:PoseStamped = self.real_object_pose
-                    pose.header.stamp = rospy.Time.now()
-                    pose.header.frame_id = 'world'
-                    self.go1_trigger_pub.publish(pose)
-                    done_trigger = True
-                    trigger_time = rospy.Time.now()
-                    singer.beep(duration = 0.1, freq = 100.0)
-
-                    # 4. Wait until object is on ground to stop catching session
-                    rate = rospy.Rate(120)
-                    count_loop_fly = 0
-                    while not rospy.is_shutdown() and self.real_object_pose.pose.position.z >= self.catching_height_real+0.1:
-                        # print every 1 second
-                        if count_loop_fly % 120 == 0:
-                            print(f'Object is flying ... current pose: [{self.real_object_pose.pose.position.x:.3f}, {self.real_object_pose.pose.position.y:.3f}, {self.real_object_pose.pose.position.z:.3f}]')
-                        count_loop_fly += 1
-                        rate.sleep()
-                    flying_time = rospy.Time.now() - trigger_time
-                    # rospy.sleep(2) 
-                    global_printer.print_green(f'Object is on ground, stop catching session ... -> Flying time: {flying_time.to_sec()} \n\n')
-                    self.send_stop_control_session_srv()
-                    self.send_stop_prediction_session_srv()
-                    singer.beep(duration=1, freq=750)
-                    break
+            # 4. Wait until object is on ground to stop catching session
+            rate = rospy.Rate(120)
+            count_loop_fly = 0
+            while not rospy.is_shutdown() and self.real_object_pose.pose.position.z >= self.catching_height_real+0.1 and \
+                rospy.Time.now() - trigger_time < rospy.Duration(self.max_session_time):
+                # print every 1 second
+                if count_loop_fly % 120 == 0:
+                    print(f'Object is flying ... current pose: [{self.real_object_pose.pose.position.x:.3f}, {self.real_object_pose.pose.position.y:.3f}, {self.real_object_pose.pose.position.z:.3f}]')
+                count_loop_fly += 1
+                rate.sleep()
+            flying_time = rospy.Time.now() - trigger_time
+            rospy.sleep(0.1) 
+            global_printer.print_green(f'Object is on ground, stop catching session ... -> Flying time: {flying_time.to_sec()} \n\n')
+            self.send_stop_control_session_srv()
+            self.send_stop_prediction_session_srv()
+            # singer.beep(duration=1, freq=750)
+            singer.speak_espeak('Done session')
+            rospy.sleep(5)
                 
     def run(self):
         try:

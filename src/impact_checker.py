@@ -5,8 +5,8 @@ import math
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Point, PoseStamped
 from python_utils.printer import Printer
+from python_utils.singer import beep, warn_beep
 from std_srvs.srv import SetBool, SetBoolResponse
-from rocat_sim.src.utils.utils import warn_beep
 import os
 import rospkg
 import numpy as np

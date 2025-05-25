@@ -8,12 +8,17 @@ import tf.transformations as tft
 
 class PoseToOdomConverter:
     def __init__(self, in_topic, out_topic, object_type):
-        self.object_type = object_type
+        self.object_type = object_type  # "robot" or "flying_object"
         self.pub = rospy.Publisher(out_topic, Odometry, queue_size=10)
         self.last_time = None
         self.last_pos = None
         rospy.Subscriber(in_topic, PoseStamped, self.pose_callback)
         print(f'[PoseConverter] Converting for {object_type}: {in_topic} -> {out_topic}')
+        if object_type == "flying_object":
+            self.catching_height_real = rospy.get_param('/catching_height_real')
+            self.stop_pos = np.array([0.0, 0.0, 0.0])   # if object height is lower than catching height real, publish stop pos instead of object pos
+        else:
+            self.catching_height_real = None
 
     def pose_callback(self, msg: PoseStamped):
         # 1) Thời gian hiện tại
@@ -69,6 +74,14 @@ class PoseToOdomConverter:
         # 7) Cập nhật state cho lần kế tiếp
         self.last_time = cur_time
         self.last_pos = pos
+        if self.object_type == "flying_object":
+            if z_new <= self.catching_height_real+0.02:
+                # Nếu object ở dưới catching height real, publish stop pos
+                odom.pose.pose.position.x = self.stop_pos[0]
+                odom.pose.pose.position.y = self.stop_pos[1]
+                odom.pose.pose.position.z = self.stop_pos[2]
+            else:
+                self.stop_pos = pos.copy()
 
         # 8) Publish
         self.pub.publish(odom)

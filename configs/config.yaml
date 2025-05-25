@@ -1,32 +1,40 @@
 # config.yaml
-using_real_robot: false
-robot_ip: "192.168.123.161"
-# robot_pose_topic: "/unitree_go1/pose"
-robot_pose_y_up_topic: "/mocap_pose_topic/go1_2_pose"
-robot_pose_z_up_topic: "/unitree_go1/pose"    # /unitree_go1/pose
-# object_pose_topic: "/mocap_sim/ball"
-object_pose_y_up_topic: "/flying_object/pose_y_up"
-object_pose_z_up_topic: "/flying_object/pose_z_up"
+using_real_robot: true
+no_cmd: false
+max_session_time: 10.0  # seconds
 
-trigger_dummy_run_topic: "/mocap_pose_topic/chip_star_pose"
+robot_ip: "192.168.123.161"
+robot_pose_y_up_topic: "/mocap_pose_topic/go1_pose"
+robot_pose_z_up_topic: "/unitree_go1/pose"                            # /unitree_go1/pose                         # "/mocap_pose_topic/go1_pose"
+object_pose_y_up_topic: "/mocap_pose_topic/flying_object_pose"        #   "/mocap_pose_topic/flying_object_pose"  # "/flying_object/pose_y_up"
+object_pose_z_up_topic: "/flying_object/pose_z_up"                    # for rviz and for trigger
+
+# trigger_dummy_run_topic: "/trigger_dummy_run_topic"
 predicted_impact_point_z_up_topic: "/move_base_simple/goal"           # "/NAE/impact_point"   "/move_base_simple/goal"
 predicted_traj_z_up_topic: "NAE/predicted_traj"
 
 real_trajectory_viz_topic: "/rviz_flying_object_trajectory"
 object_pose_z_up_viz_topic: "/rviz_flying_object"
 realtime_basket_pose_viz_topic: "/rviz_basket_pose"
-
+catching_height_real: 0.63
 
 trajectory_predictor:
   predict_schedule_step: 2
   ignore_first_predictions: 0
   rate: 20
   pub_impact_point_with_z_up: true
+  # zone to collect data from mocap
+  throw_active_range_x: [-2.0, 100]
+  throw_active_range_z: [-1000, 1000]
+  interpolate_raw_pos_data: true
 
 rocat_sim_manager:
-  trigger_n_thow_time_gap_sim: 0.3
-  catching_distance: 0.6
-  catching_orientation_dev_deg_thres: 20
+  # For sim
+  # trigger_n_thow_time_gap_sim: 0.3
+  # catching_distance: 0.6
+  # catching_orientation_dev_deg_thres: 20
+  # For real
+  real_trigger_threshold_x: &thr -2.5
   
 impact_checker:
   control_tolerance_xy:
@@ -43,19 +51,23 @@ high_level_controller:
   modify_z_up_goal: false
   modify_z_up_robot_pose: false
   dummy_run_time: 1.0
-  dummy_run_vel: 0.3
-  max_control_time: 10.0
-  active_zone_x: [-1000, 1000]
-  active_zone_y: [-1000, 1000]
-  dummy_zone_x: [-1000, 1000]
-  dummy_zone_y: [-1000, 1000]
+  dummy_run_vel: 1.0
+  # if robot is out of this zone, controller will publish vel 0
+  active_zone_x: [0, 4]
+  active_zone_y: [-3, 1.5]
+  # Robot is triggered to run if received trigger pos is in this zone
+  dummy_zone_x: [*thr, 5]
+  dummy_zone_y: [-3, 0]
+  dummy_zone_z: [0.3, 1000]     # height
 
-  pid_x: [2.5, 0.0, 0.0]
-  pid_y: [2.0, 0.0, 0.0]
+  # pid_x: [2.5, 0.0, 0.0]
+  # pid_y: [2.0, 0.0, 0.0]
+  pid_x: [7, 0.01, 0.05]
+  pid_y: [4, 0.01, 0.05]
   pid_theta: [0.5, 0.0, 0.0]
   deadband_xytheta: [0.0, 0.0, 3.0]
 
-  vx_range: [-1.0, 2.0]
+  vx_range: [-2.3, 3.3]    # [-1.0, 2.0]
   vy_range: [-1.0, 1.0]
   wz_range: [-1.0, 1.0]
 

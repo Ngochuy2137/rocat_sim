@@ -164,6 +164,7 @@ catkin_install_python(PROGRAMS
   src/basket_pub.py
   src/throw_manager_node.py
   src/mocap_y_up_to_z_up_node.py
+  src/world_base_tf_pub.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

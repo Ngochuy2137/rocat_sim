@@ -139,7 +139,8 @@ class ImpactChecker:
                     file_path = os.path.join(result_folder, f'impact_checker-{self.time_start}-{object_name}-{model_name}.txt')
                     with open(file_path, 'a') as f:
                         f.write(f"Trial {self.trial_count} result: {this_trial_result}\n")
-                        f.write(f"Success percentage: {success_percentage}\n")
+                        # f.write(f"Success percentage: {success_percentage}\n")
+                        f.write(f"Success count: {np.sum(success_matrix_np, axis=0)}    DIST: {dis_xy}\n")
                         f.write(f"{'-'*50}\n")
                     print(f"       Result saved to {file_path}")
                 except Exception as e:

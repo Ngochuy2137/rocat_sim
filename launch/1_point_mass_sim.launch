@@ -1,0 +1,10 @@
+<launch>
+    <include file="$(find rocat_sim)/launch/0_param_pub.launch" />
+
+    <!-- Launch rviz at -d /home/huynn/huynn_ws/robot_catching_ws/rocat_ws/src/rocat_sim/rviz/rviz.rviz -->
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find rocat_sim)/rviz/rviz.rviz" output="screen"/>
+    <!-- Chạy node basket_pub -->
+    <node pkg="rocat_sim" type="holonomic_point_mass_sim_node.py" name="holonomic_point_mass_sim_node" output="screen">
+    </node>
+    
+</launch>

@@ -72,7 +72,7 @@ Visualization Manager:
       Keep: 1
       Name: robot pose
       Position Tolerance: 0.10000000149011612
-      Queue Size: 0
+      Queue Size: 100
       Shape:
         Alpha: 1
         Axes Length: 0.30000001192092896
@@ -100,7 +100,7 @@ Visualization Manager:
       Marker Topic: rviz_flying_object_trajectory
       Name: Trajectory
       Namespaces:
-        flying_object_trajectory: true
+        {}
       Queue Size: 1
       Value: true
     - Alpha: 1
@@ -156,8 +156,7 @@ Visualization Manager:
       Marker Topic: NAE/impact_point_list
       Name: impact point list
       Namespaces:
-        labels: true
-        pts: true
+        {}
       Queue Size: 1
       Value: true
     - Alpha: 1
@@ -176,12 +175,35 @@ Visualization Manager:
       Update Interval: 0
       Value: false
       Visual Enabled: true
+    - Class: rviz/TF
+      Enabled: true
+      Filter (blacklist): ""
+      Filter (whitelist): ""
+      Frame Timeout: 15
+      Frames:
+        All Enabled: true
+        base_link:
+          Value: true
+        world:
+          Value: true
+      Marker Alpha: 1
+      Marker Scale: 1
+      Name: TF
+      Show Arrows: true
+      Show Axes: true
+      Show Names: true
+      Tree:
+        world:
+          base_link:
+            {}
+      Update Interval: 0
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
     Fixed Frame: world
-    Frame Rate: 30
+    Frame Rate: 100
   Name: root
   Tools:
     - Class: rviz/Interact
@@ -213,10 +235,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 234.39236450195312
+      Scale: 310.74224853515625
       Target Frame: <Fixed Frame>
-      X: 1.635646939277649
-      Y: -1.2989258766174316
+      X: 0.7130215167999268
+      Y: -0.4923125207424164
     Saved: ~
 Window Geometry:
   Displays:
@@ -235,4 +257,4 @@ Window Geometry:
     collapsed: true
   Width: 1280
   X: 1278
-  Y: 27
+  Y: 0

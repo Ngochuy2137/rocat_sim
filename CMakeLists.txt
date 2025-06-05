@@ -165,6 +165,7 @@ catkin_install_python(PROGRAMS
   src/throw_manager_node.py
   src/mocap_y_up_to_z_up_node.py
   src/world_base_tf_pub.py
+  src/holonomic_point_mass_sim_node.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

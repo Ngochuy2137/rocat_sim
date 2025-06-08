@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
 
+'''
+This node:
+- Sub object_pose_z_up_viz_topic
+- Sub robot_pose_z_up_topic
+'''
+
+
 import rospy
 import math
 from nav_msgs.msg import Odometry
@@ -110,8 +117,9 @@ class ImpactChecker:
                 global_printer.print_green(f'Detected catching point')
 
                 # 1. Check kết quả của lần thử nghiệm này
-                robot_xy = np.array(self.robot_position)
-                object_xy = np.array(self.object_position)
+                robot_xy = np.array(self.robot_position)[:2]  # Chỉ lấy x, y
+                object_xy = np.array(self.object_position)[:2]
+                print('check shape:', robot_xy.shape, object_xy.shape)
                 # Tính khoảng cách giữa robot và vật thể
                 dis_xy = np.linalg.norm(robot_xy - object_xy)
                 this_trial_result = dis_xy <= np.array(TOLERANCE_XY_LIST)

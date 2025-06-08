@@ -82,24 +82,24 @@ class ThrowManager:
             rospy.delete_param('/catching_height')
             print("Deleted param /catching_height")
         
-        # Service clients        
-        # 1. Impact checker
-        rospy.wait_for_service('/trigger_impact_checker_srv', timeout=10)
-        self.trigger_impact_checker_client = rospy.ServiceProxy('/trigger_impact_checker_srv', SetBool)
+        # # Service clients        
+        # # 1. Impact checker
+        # rospy.wait_for_service('/trigger_impact_checker_srv', timeout=10)
+        # self.trigger_impact_checker_client = rospy.ServiceProxy('/trigger_impact_checker_srv', SetBool)
 
-        # 2. Robot controller
-        rospy.wait_for_service('/ask_if_robot_is_ready_srv', timeout=10)
-        self.ask_robot_controller_client = rospy.ServiceProxy('/ask_if_robot_is_ready_srv', SetBool)
+        # # 2. Robot controller
+        # rospy.wait_for_service('/ask_if_robot_is_ready_srv', timeout=10)
+        # self.ask_robot_controller_client = rospy.ServiceProxy('/ask_if_robot_is_ready_srv', SetBool)
 
-        rospy.wait_for_service('/stop_control_session_srv', timeout=10)
-        self.stop_control_client = rospy.ServiceProxy('/stop_control_session_srv', SetBool)
+        # rospy.wait_for_service('/stop_control_session_srv', timeout=10)
+        # self.stop_control_client = rospy.ServiceProxy('/stop_control_session_srv', SetBool)
 
-        # 3. NAE predictor
-        rospy.wait_for_service('NAE/ask_if_predictor_is_ready_srv', timeout=10)
-        self.trigger_nae_predictor_client = rospy.ServiceProxy('NAE/ask_if_predictor_is_ready_srv', SetBool)
+        # # 3. NAE predictor
+        # rospy.wait_for_service('NAE/ask_if_predictor_is_ready_srv', timeout=10)
+        # self.trigger_nae_predictor_client = rospy.ServiceProxy('NAE/ask_if_predictor_is_ready_srv', SetBool)
 
-        rospy.wait_for_service('NAE/stop_prediction_session_srv', timeout=10)
-        self.stop_prediction_client = rospy.ServiceProxy('NAE/stop_prediction_session_srv', SetBool)
+        # rospy.wait_for_service('NAE/stop_prediction_session_srv', timeout=10)
+        # self.stop_prediction_client = rospy.ServiceProxy('NAE/stop_prediction_session_srv', SetBool)
 
 
     def load_data(self, object_name):
@@ -312,6 +312,24 @@ class ThrowManager:
         return data_test
 
     def run(self, trial_num_target):
+        # Service clients        
+        # 1. Impact checker
+        rospy.wait_for_service('/trigger_impact_checker_srv', timeout=10)
+        self.trigger_impact_checker_client = rospy.ServiceProxy('/trigger_impact_checker_srv', SetBool)
+
+        # 2. Robot controller
+        rospy.wait_for_service('/ask_if_robot_is_ready_srv', timeout=10)
+        self.ask_robot_controller_client = rospy.ServiceProxy('/ask_if_robot_is_ready_srv', SetBool)
+
+        rospy.wait_for_service('/stop_control_session_srv', timeout=10)
+        self.stop_control_client = rospy.ServiceProxy('/stop_control_session_srv', SetBool)
+
+        # 3. NAE predictor
+        rospy.wait_for_service('NAE/ask_if_predictor_is_ready_srv', timeout=10)
+        self.trigger_nae_predictor_client = rospy.ServiceProxy('NAE/ask_if_predictor_is_ready_srv', SetBool)
+
+        rospy.wait_for_service('NAE/stop_prediction_session_srv', timeout=10)
+        self.stop_prediction_client = rospy.ServiceProxy('NAE/stop_prediction_session_srv', SetBool)
         try:
             time_start = time.time()
             self.publish_trajectories(time_start, trial_num_target)

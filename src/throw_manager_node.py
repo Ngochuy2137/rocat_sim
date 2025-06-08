@@ -171,6 +171,7 @@ class ThrowManager:
         trial_num_target = max(n, 100)
         # for traj_idx, traj in enumerate(self.data):
         for traj_idx in range(self.traj_id_start, trial_num_target):
+            input('Press ENTER to continue to next trajectory')
             traj = self.data[traj_idx % n]
             if rospy.is_shutdown():
                 break
@@ -211,10 +212,13 @@ class ThrowManager:
             # Calculate robot initial position
 
             # Load config for setting robot initial position
-            catch_ori_dev_deg_thres = rospy.get_param('/rocat_sim_manager/catching_orientation_dev_deg_thres')
+            catch_ori_dev_deg_thre_ranges = rospy.get_param('/rocat_sim_manager/catching_orientation_dev_deg_thre_ranges')
+            random_range_idx = random.randint(0, len(catch_ori_dev_deg_thre_ranges) - 1)
+            catch_ori_dev_deg_thres_min = catch_ori_dev_deg_thre_ranges[random_range_idx][0]
+            catch_ori_dev_deg_thres_max = catch_ori_dev_deg_thre_ranges[random_range_idx][1]
             catch_dist = rospy.get_param('/rocat_sim_manager/catching_distance')
-            alpha = random.uniform(-catch_ori_dev_deg_thres,
-                                   catch_ori_dev_deg_thres)
+            alpha = random.uniform(catch_ori_dev_deg_thres_min,
+                                   catch_ori_dev_deg_thres_max)
             init_pos = find_point_A(real_catching_point_with_z_up[0], real_catching_point_with_z_up[1], alpha_degree=alpha,
                                     d=catch_dist)
 
@@ -222,7 +226,12 @@ class ThrowManager:
             # wait for second before new run
             rospy.sleep(self.wait_time_after_robot_reset)
             # Reset robot to initial position
-            reset_robot(x_init=init_pos[0], y_init=init_pos[1])
+            if np.cos(alpha*3.14159/180) < 0:
+                yaw_init = 180
+            else:
+                yaw_init = 0
+            print('alpha:', alpha, 'yaw_init:', yaw_init); input()
+            reset_robot(x_init=init_pos[0], y_init=init_pos[1], yaw_init=yaw_init)
 
             # 5. Visualization
             # Prepare visualization markers for trajectory

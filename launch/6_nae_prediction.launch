@@ -1,4 +1,6 @@
 <launch>
+    <include file="$(find rocat_sim)/launch/0_param_pub.launch" />
+
     <!-- NAE prediction -->
     <node pkg="nae_online_prediction" type="online_predict_node_sim.py" name="online_predict_node_sim" output="screen"  />
 </launch>

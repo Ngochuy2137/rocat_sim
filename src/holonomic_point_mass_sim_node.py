@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import rospy
 from geometry_msgs.msg import Twist, Pose, PoseWithCovariance, Quaternion
+from gazebo_msgs.srv import SetModelState, SetModelStateRequest, SetModelStateResponse
 from nav_msgs.msg import Odometry
 from tf.broadcaster import TransformBroadcaster
 import tf
@@ -61,6 +62,8 @@ class HolonomicSim:
         self.odom_pub = rospy.Publisher("/unitree_go1/pose", Odometry, queue_size=10)
         self.cmd_sub = rospy.Subscriber('/cmd_vel', Twist, self.cmd_callback)
         self.tf_broadcaster = TransformBroadcaster()
+        # service server to set model state
+        self.set_robot_state_srv = rospy.Service('gazebo/set_model_state', SetModelState, self.set_robot_state_handle)
 
         self.vx_cmd = 0.0
         self.vy_cmd = 0.0
@@ -70,6 +73,23 @@ class HolonomicSim:
         self.vx_cmd = msg.linear.x
         self.vy_cmd = msg.linear.y
         self.vtheta_cmd = msg.angular.z
+    
+    def set_robot_state_handle(self, req:SetModelStateRequest):
+        # update the robot state from the request
+        self.x = req.model_state.pose.position.x
+        self.y = req.model_state.pose.position.y
+        q = req.model_state.pose.orientation
+        _, _, self.theta = tf.transformations.euler_from_quaternion([q.x, q.y, q.z, q.w])
+
+        self.vx_real = req.model_state.twist.linear.x
+        self.vy_real = req.model_state.twist.linear.y
+        self.vtheta_real = req.model_state.twist.angular.z
+        print('----- Robot received new state reset -----')
+        print(f"    Current pose: {self.x}, y: {self.y}, theta: {self.theta}")
+        
+        response = SetModelStateResponse()
+        response.success = True
+        return response
 
     def update(self):
         rate = rospy.Rate(100)
@@ -107,7 +127,7 @@ class HolonomicSim:
                 (self.x, self.y, 0.0),
                 odom_quat,
                 now,
-                "base_link",
+                "base",
                 "world"
             )
 
@@ -115,7 +135,7 @@ class HolonomicSim:
             odom = Odometry()
             odom.header.stamp = now
             odom.header.frame_id = "world"
-            odom.child_frame_id = "base_link"
+            odom.child_frame_id = "base"
 
             odom.pose.pose.position.x = self.x
             odom.pose.pose.position.y = self.y

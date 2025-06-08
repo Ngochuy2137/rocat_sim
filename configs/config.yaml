@@ -75,22 +75,22 @@ high_level_controller:
 # catching_height: null
 
 ## NAE
-model_dir: '/home/huynn/huynn_ws/trajectory_prediction/nae_static/training_scripts/V-general-except-U-N-J-Q-O/models/V-3-1-PC3-general-except-U-N-J-Q-O-in30-out10_model'
+model_dir: $(env NAE_DIR)/training_scripts/V-general-except-U-N-J-Q-O/models/V-3-1-PC3-general-except-U-N-J-Q-O-in30-out10_model
 model_epoch_idx: 30000 
 model_name: 'NAE'
 
 # ## NAE-ID
-# model_dir : '/home/huynn/huynn_ws/trajectory_prediction/nae_static/training_scripts/V-general-except-U-N-J-Q-O/models/V-4-1-PC1-general-ONE-HOT-except-U-N-J-Q-O-in30-out10_model'
+# model_dir : $(env NAE_DIR)/training_scripts/V-general-except-U-N-J-Q-O/models/V-4-1-PC1-general-ONE-HOT-except-U-N-J-Q-O-in30-out10_model
 # model_epoch_idx : 29999
 # model_name : 'NAE-ID'
 
 # ## LSTMencoder
-# model_dir: '/home/huynn/huynn_ws/trajectory_prediction/nae_static/training_scripts/0-Phase-2/LSTMencoder/Vph2-v0-1-PCNAIST-server-GEN-EXCEPT-U-N-J-Q-O-lstmENCODER-in30-out10_model'
+# model_dir: '$(env NAE_DIR)/training_scripts/0-Phase-2/LSTMencoder/Vph2-v0-1-PCNAIST-server-GEN-EXCEPT-U-N-J-Q-O-lstmENCODER-in30-out10_model'
 # model_epoch_idx: best_model_ade 
 # model_name: 'LSTMencoder'
 
 # ## LSTMencoder-CLF
-# model_dir: '/home/huynn/huynn_ws/trajectory_prediction/nae_static/training_scripts/0-phase-4/models-phase-4-week-2/Vph4-v1-1-w1-PCNAIST-server-GEN-EXCEPT-U-N-J-Q-O-lstmENCODER-in30-out10_model'
+# model_dir: '$(env NAE_DIR)/training_scripts/0-phase-4/models-phase-4-week-2/Vph4-v1-1-w1-PCNAIST-server-GEN-EXCEPT-U-N-J-Q-O-lstmENCODER-in30-out10_model'
 # model_epoch_idx: best_model_ade 
 # model_name: 'LSTMencoder-CLF-w1-1CLFlayer'
 

@@ -6,6 +6,7 @@ import os
 import random
 import math
 import numpy as np
+import time
 from tqdm import tqdm
 from std_srvs.srv import SetBool, SetBoolRequest, SetBoolResponse
 from geometry_msgs.msg import PoseStamped
@@ -41,7 +42,11 @@ class ThrowManager:
         trigger_dummy_run_topic = rospy.get_param('trigger_dummy_run_topic')
         object_pose_z_up_viz_topic = rospy.get_param('object_pose_z_up_viz_topic')
         object_topic_y_up = rospy.get_param('object_pose_y_up_topic')
-        self.trigger_n_thow_time_gap_sim = rospy.get_param('/rocat_sim_manager/trigger_n_thow_time_gap_sim')
+        self.wait_time_b4_trigger_ctrl = rospy.get_param('/rocat_sim_manager/wait_time_b4_trigger_ctrl')
+        self.wait_time_after_robot_reset = rospy.get_param('/rocat_sim_manager/wait_time_after_robot_reset')
+
+        self.enable_trigger_ctrl = rospy.get_param('/rocat_sim_manager/trigger_ctrl/enable')
+        self.trigger_n_thow_time_gap_sim = rospy.get_param('/rocat_sim_manager/trigger_ctrl/trigger_n_thow_time_gap_sim')
 
         # Constants
         self.MAX_CATCH_DIST = 0.8
@@ -161,7 +166,7 @@ class ThrowManager:
         rospy.sleep(1)
         return SetBoolResponse(success=True, message="Thank you for the signal")
 
-    def publish_trajectories(self):
+    def publish_trajectories(self, time_start):
         n = len(self.data)
         trial_num_target = max(n, 100)
         # for traj_idx, traj in enumerate(self.data):
@@ -169,7 +174,9 @@ class ThrowManager:
             traj = self.data[traj_idx % n]
             if rospy.is_shutdown():
                 break
-            global_printer.print_blue(f"\n{'='*25} TRIAL #{traj_idx} {'='*25}", background=True)
+            time_pass = (time.time() - time_start)/60
+            time_left_predict = time_pass * (trial_num_target - traj_idx - 1) / (traj_idx + 1)
+            global_printer.print_blue(f"\n{'='*25} TRIAL #{traj_idx} - time: {time_pass:.3f} - time left {time_left_predict:.3f} {'='*25}", background=True)
             # 1. Check trajectory shape
             if traj.shape[1] != 4:
                 raise ValueError('Trajectory point must have 4 dimensions (t, x, y, z)')
@@ -213,7 +220,7 @@ class ThrowManager:
 
             # input(f"Press ENTER to reset robot to init position {init_pos}")
             # wait for second before new run
-            rospy.sleep(5)
+            rospy.sleep(self.wait_time_after_robot_reset)
             # Reset robot to initial position
             reset_robot(x_init=init_pos[0], y_init=init_pos[1])
 
@@ -227,15 +234,16 @@ class ThrowManager:
             publish_points_2rviz(points_pub=self.marker_pub, points=traj_vis)
             # Delay before trigger
             global_printer.print_green('Waiting 2 seconds before triggering controller ...')
-            rospy.sleep(6)
+            rospy.sleep(self.wait_time_b4_trigger_ctrl)
 
             # Trigger robot catch
-            pose = PoseStamped()
-            pose.header.stamp = rospy.Time.now()
-            pose.header.frame_id = 'world'
-            pose.pose.orientation.w = 1.0
-            self.go1_trigger_pub.publish(pose)
-            rospy.sleep(self.trigger_n_thow_time_gap_sim) # sleep awhile after trigger
+            if self.enable_trigger_ctrl:
+                pose = PoseStamped()
+                pose.header.stamp = rospy.Time.now()
+                pose.header.frame_id = 'world'
+                pose.pose.orientation.w = 1.0
+                self.go1_trigger_pub.publish(pose)
+                rospy.sleep(self.trigger_n_thow_time_gap_sim) # sleep awhile after trigger
 
             # Publish trajectory points in real-time
             rate = rospy.Rate(120)
@@ -251,6 +259,7 @@ class ThrowManager:
                 ps.pose.orientation.w = 1.0
 
                 self.traj_pub.publish(ps)
+                # publish realtime flying object
                 publish_special_point(x=point[1], y=-point[3], z=point[2], special_point_pub=self.rviz_object_pub)   # only for rviz viz
                 rate.sleep()
 
@@ -270,7 +279,8 @@ class ThrowManager:
 
     def run(self):
         try:
-            self.publish_trajectories()
+            time_start = time.time()
+            self.publish_trajectories(time_start)
         except rospy.ROSInterruptException:
             pass
 

@@ -100,7 +100,7 @@ model_name: 'LSTMencoder'
 # model_epoch_idx: best_model_ade 
 # model_name: 'LSTMencoder-CLF-w1-1CLFlayer'
 
-object_name: cap     
+# object_name: cap     
 # UNSEEN: 
       # cookie_box        -> 
       # water_bottle      -> 

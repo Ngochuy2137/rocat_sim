@@ -24,6 +24,16 @@ from rocat_sim.src.utils.utils import (
     warn_beep
 )
 
+import subprocess
+
+def kill_ros_node(node_name):
+    try:
+        subprocess.run(["rosnode", "kill", node_name], check=True)
+        print(f"Đã kill node: {node_name}")
+    except subprocess.CalledProcessError as e:
+        print(f"Không thể kill node: {node_name}. Lỗi: {e}")
+        raise RuntimeError(f"Failed to kill node {node_name}. Please check if the node is running or if you have the correct permissions.")
+
 # from rocat_sim.srv import UpdateCatchingHeight, UpdateCatchingHeightRequest
 
 def shutdown_node():
@@ -33,9 +43,9 @@ def shutdown_node():
 global_printer = Printer()
 global_plotter = Plotter()
 class ThrowManager:
-    def __init__(self, object_name):
+    def __init__(self, ):
         # Initialize ROS node
-        rospy.init_node('throw_manager', anonymous=True)
+        rospy.init_node('throw_manager', anonymous=False)
 
         # Load configuration
         real_trajectory_viz_topic = rospy.get_param('real_trajectory_viz_topic')
@@ -49,12 +59,11 @@ class ThrowManager:
         self.trigger_n_thow_time_gap_sim = rospy.get_param('/rocat_sim_manager/trigger_ctrl/trigger_n_thow_time_gap_sim')
 
         # Constants
-        self.MAX_CATCH_DIST = 0.8
         self.DATA_WITH_Y_UP = True
 
         # Environment variables and data directories
-        data_dir = os.path.join(os.getenv('NAE_DATASET20'), object_name, '3-data-augmented', 'data_plit')
-        self.data = self.load_trajectory_data(data_dir)
+        # data_dir = os.path.join(os.getenv('NAE_DATASET20'), object_name, '3-data-augmented', 'data_plit')
+        # self.data = self.load_trajectory_data(data_dir)
 
         # Publishers
         self.traj_pub = rospy.Publisher(object_topic_y_up, PoseStamped, queue_size=10)
@@ -62,7 +71,7 @@ class ThrowManager:
         self.go1_trigger_pub = rospy.Publisher(trigger_dummy_run_topic, PoseStamped, queue_size=100)
         self.rviz_object_pub = rospy.Publisher(object_pose_z_up_viz_topic, PoseStamped, queue_size=10)
 
-        self.traj_id_start = rospy.get_param('~traj_id_start')  # 0 là giá trị mặc định nếu param không có
+        # self.traj_id_start = rospy.get_param('~traj_id_start')  # 0 là giá trị mặc định nếu param không có
 
         # Service server
         # Service from robot controller node
@@ -93,7 +102,24 @@ class ThrowManager:
         self.stop_prediction_client = rospy.ServiceProxy('NAE/stop_prediction_session_srv', SetBool)
 
 
-        self.already_asked_last_result = False # this var is to guarantee that asking for last result before reset the impact checker
+    def load_data(self, object_name):
+        """Reset the ThrowManager state."""
+        # Load configuration
+        # self.wait_time_b4_trigger_ctrl = rospy.get_param('/rocat_sim_manager/wait_time_b4_trigger_ctrl')
+        # self.wait_time_after_robot_reset = rospy.get_param('/rocat_sim_manager/wait_time_after_robot_reset')
+        # self.enable_trigger_ctrl = rospy.get_param('/rocat_sim_manager/trigger_ctrl/enable')
+        # self.trigger_n_thow_time_gap_sim = rospy.get_param('/rocat_sim_manager/trigger_ctrl/trigger_n_thow_time_gap_sim')
+
+        # Environment variables and data directories
+        data_dir = os.path.join(os.getenv('NAE_DATASET20'), object_name, '3-data-augmented', 'data_plit')
+        self.data = self.load_trajectory_data(data_dir)
+        self.traj_id_start = rospy.get_param('~traj_id_start')  # 0 là giá trị mặc định nếu param không có
+
+        # # delete param catching height if it exists, will be set again in publish_trajectories
+        # if rospy.has_param('/catching_height'):
+        #     rospy.delete_param('/catching_height')
+        #     print("Deleted param /catching_height")
+        
 
     def send_trigger_impact_checker_srv(self, ):
         """Call the trigger service to trigger the impact checker trigger."""
@@ -160,18 +186,17 @@ class ThrowManager:
         if not req.data:
             global_printer.print_red("Robot cannot reach goal, check simulation")
             warn_beep(5)
-            shutdown_node()
         
         print("        Received INFO robot reach goal signal")
         rospy.sleep(1)
         return SetBoolResponse(success=True, message="Thank you for the signal")
 
-    def publish_trajectories(self, time_start):
+    def publish_trajectories(self, time_start, trial_num_target):
         n = len(self.data)
-        trial_num_target = max(n, 100)
+        # trial_num_target = max(n, trial_num_target)
         # for traj_idx, traj in enumerate(self.data):
         for traj_idx in range(self.traj_id_start, trial_num_target):
-            input('Press ENTER to continue to next trajectory')
+            # input('Press ENTER to continue to next trajectory')
             traj = self.data[traj_idx % n]
             if rospy.is_shutdown():
                 break
@@ -230,7 +255,7 @@ class ThrowManager:
                 yaw_init = 180
             else:
                 yaw_init = 0
-            print('alpha:', alpha, 'yaw_init:', yaw_init); input()
+            # print('alpha:', alpha, 'yaw_init:', yaw_init); input()
             reset_robot(x_init=init_pos[0], y_init=init_pos[1], yaw_init=yaw_init)
 
             # 5. Visualization
@@ -286,22 +311,55 @@ class ThrowManager:
         _, _, data_test = loader.load_train_val_test_dataset(data_dir, file_format='csv')
         return data_test
 
-    def run(self):
+    def run(self, trial_num_target):
         try:
             time_start = time.time()
-            self.publish_trajectories(time_start)
+            self.publish_trajectories(time_start, trial_num_target)
         except rospy.ROSInterruptException:
             pass
 
 if __name__ == '__main__':
-    # object_name = 'cap'    # ball big_sized_plane boomerang cardboard cookie_box
-    #                         # cookie_box water_bottle paper_cup noodle_cup cap
-    object_name = rospy.get_param('object_name')
-    global_printer.print_green(f'{"="*25} LOADED PARAMS {"="*25}', background=True)
-    print('    object_name:', object_name)
+    # UNSEEN: 
+      # cookie_box        -> 
+      # water_bottle      -> 
+      # paper_cup         -> 
+      # noodle_cup        -> 
+      # cap               -> 
+    # SEEN:
+      # ball              -> 
+      # big_sized_plane   -> 
+      # boomerang         ->   
+      # cardboard         -> 
+      # ring_frisbee      -> 
 
-    # update object name to param server
-    global_printer.print_blue(f"Starting throw manager for {object_name} ...", background=True)
-    manager = ThrowManager(object_name)
-    manager.run()
-    warn_beep(3)
+    all_objects_list = [
+        'ball', 'big_sized_plane', 'boomerang', 'cardboard', 'ring_frisbee',
+        'cookie_box', 'water_bottle', 'paper_cup', 'noodle_cup', 'cap'
+    ]
+    trial_num_target_per_obj = 100
+    manager = ThrowManager()
+    for object_name in all_objects_list:
+        print(f'Object: {object_name}')
+        rospy.set_param('object_name', object_name)
+
+        global_printer.print_green(f'{"="*25} LOADED PARAMS {"="*25}', background=True)
+        print('    object_name:', object_name)
+
+        # update object name to param server
+        global_printer.print_blue(f"Starting throw manager for {object_name} ...", background=True)
+        manager.load_data(object_name)
+        manager.run(trial_num_target=trial_num_target_per_obj)
+
+        # kill_ros_node('throw_manager')
+        warn_beep(3)
+
+
+    # object_name = rospy.get_param('object_name')
+    # global_printer.print_green(f'{"="*25} LOADED PARAMS {"="*25}', background=True)
+    # print('    object_name:', object_name)
+
+    # # update object name to param server
+    # global_printer.print_blue(f"Starting throw manager for {object_name} ...", background=True)
+    # manager = ThrowManager(object_name)
+    # manager.run()
+    # warn_beep(3)

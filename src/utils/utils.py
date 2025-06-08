@@ -48,7 +48,20 @@ def warn_beep(iter):
 
 
 def reset_robot(x_init=0.0, y_init=0.0, z_init=0.45, roll_init=0.0, pitch_init=0.0, yaw_init=0.0):
+    '''
+    args:
+    x_init: tọa độ x ban đầu
+    y_init: tọa độ y ban đầu
+    z_init: tọa độ z ban đầu
+    roll_init: góc roll ban đầu (độ)
+    pitch_init: góc pitch ban đầu (độ)
+    yaw_init: góc yaw ban đầu (độ)
+    '''
     rospy.wait_for_service("/gazebo/set_model_state", timeout=2)
+    # convert roll, pitch, yaw from degree to radian
+    roll_init = roll_init * (3.141592653589793 / 180.0)
+    pitch_init = pitch_init * (3.141592653589793 / 180.0)
+    yaw_init = yaw_init * (3.141592653589793 / 180.0)
     try:
         set_state = rospy.ServiceProxy("/gazebo/set_model_state", SetModelState)
         state_msg = SetModelStateRequest()

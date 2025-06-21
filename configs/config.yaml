@@ -38,8 +38,9 @@ rocat_sim_manager:
   trigger_ctrl:
     enable: false
     trigger_n_thow_time_gap_sim: 0.15
-  catching_distance: 0.3
-  catching_orientation_dev_deg_thre_ranges: [[-15, 15], [170, 190]]
+  catching_distance: 0.5
+  # catching_orientation_dev_deg_thre_ranges: [[-15, 15], [170, 190]]
+  catching_orientation_dev_deg_thre_ranges: [[-10, 10]]
   wait_time_b4_trigger_ctrl: 0.5
   wait_time_after_robot_reset: 0.5
   

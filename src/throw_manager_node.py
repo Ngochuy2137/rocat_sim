@@ -34,13 +34,13 @@ class ThrowManager:
 
         # Load configuration
         real_trajectory_viz_topic = rospy.get_param('real_trajectory_viz_topic')
-        # trigger_dummy_run_topic = rospy.get_param('trigger_dummy_run_topic')
+        trigger_dummy_run_topic = rospy.get_param('trigger_dummy_run_topic')
         object_pose_z_up_viz_topic = rospy.get_param('object_pose_z_up_viz_topic')
         self.using_real_robot = rospy.get_param('using_real_robot')
 
         # Publishers
         self.marker_pub = rospy.Publisher(real_trajectory_viz_topic, Marker, queue_size=10)
-        # self.go1_trigger_pub = rospy.Publisher(trigger_dummy_run_topic, PoseStamped, queue_size=100)
+        self.go1_trigger_pub = rospy.Publisher(trigger_dummy_run_topic, PoseStamped, queue_size=100)
         self.rviz_object_pub = rospy.Publisher(object_pose_z_up_viz_topic, PoseStamped, queue_size=10)
         
         # Subscribers
@@ -69,8 +69,8 @@ class ThrowManager:
         #     self.trigger_impact_checker_client = rospy.ServiceProxy('/trigger_impact_checker_srv', SetBool)
 
         # 2. Robot controller
-        rospy.wait_for_service('/allow_new_session_control_srv', timeout=10)
-        self.new_control_session_srv = rospy.ServiceProxy('/allow_new_session_control_srv', SetBool)
+        # rospy.wait_for_service('/allow_new_session_control_srv', timeout=10)
+        # self.new_control_session_srv = rospy.ServiceProxy('/allow_new_session_control_srv', SetBool)
 
         rospy.wait_for_service('/stop_control_session_srv', timeout=10)
         self.stop_control_client = rospy.ServiceProxy('/stop_control_session_srv', SetBool)
@@ -96,17 +96,17 @@ class ThrowManager:
         self.real_object_pose.header = msg.header
         self.real_object_pose.pose = msg.pose.pose
 
-    def send_new_control_session_srv(self):
-        """Call the ask service to check if the robot is free."""
-        print("\n-> ROBOT CONTROLLER: Asking if robot is free...")
-        try:
-            req = SetBoolRequest(data=False)
-            resp = self.new_control_session_srv(req)
-            print(f"        Ask response: success={resp.success}, message='{resp.message}'")
-            return resp.success
-        except rospy.ServiceException as e:
-            global_printer.print_red(f"     Ask robot controller failed: {e}")
-            return False
+    # def send_new_control_session_srv(self):
+    #     """Call the ask service to check if the robot is free."""
+    #     print("\n-> ROBOT CONTROLLER: Asking if robot is free...")
+    #     try:
+    #         req = SetBoolRequest(data=False)
+    #         resp = self.new_control_session_srv(req)
+    #         print(f"        Ask response: success={resp.success}, message='{resp.message}'")
+    #         return resp.success
+    #     except rospy.ServiceException as e:
+    #         global_printer.print_red(f"     Ask robot controller failed: {e}")
+    #         return False
         
     def send_stop_control_session_srv(self):
         """Call the stop service to stop the robot."""
@@ -174,9 +174,9 @@ class ThrowManager:
                 global_printer.print_yellow("       Waiting for NAE predictor ready for new prediction")
                 rospy.sleep(1)
 
-            while not rospy.is_shutdown() and not self.send_new_control_session_srv():
-                global_printer.print_yellow("       Waiting for Robot controller ready")
-                rospy.sleep(1)
+            # while not rospy.is_shutdown() and not self.send_new_control_session_srv():
+            #     global_printer.print_yellow("       Waiting for Robot controller ready")
+            #     rospy.sleep(1)
             rospy.sleep(2)
             singer.speak_espeak('THROW NOW', volume=1000)
             print(('\n\n'))
@@ -201,7 +201,8 @@ class ThrowManager:
                                                                                         {self.real_object_pose.pose.position.z:.3f}]')
                 count_loop_b4_fly += 1
                 rate.sleep()
-                
+            # trigger the dummy run
+            self.go1_trigger_pub.publish(self.real_object_pose)
             trigger_time = rospy.Time.now()
             singer.beep(duration = 0.1, freq = 100.0)
 

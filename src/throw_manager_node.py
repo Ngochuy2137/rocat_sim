@@ -40,6 +40,8 @@ def shutdown_node():
     rospy.loginfo("Shutting down the node...")
     rospy.signal_shutdown("User requested shutdown")
 
+np.random.seed(42)
+
 global_printer = Printer()
 global_plotter = Plotter()
 class ThrowManager:
@@ -352,7 +354,7 @@ if __name__ == '__main__':
 
     all_objects_list = [
         'ball', 'big_sized_plane', 'boomerang', 'cardboard', 'ring_frisbee',
-        # 'cookie_box', 'water_bottle', 'paper_cup', 'noodle_cup', 'cap'
+        'cookie_box', 'water_bottle', 'paper_cup', 'noodle_cup', 'cap'
     ]
     trial_num_target_per_obj = 100
     manager = ThrowManager()

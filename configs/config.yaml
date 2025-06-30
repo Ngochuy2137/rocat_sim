@@ -21,8 +21,8 @@ point_mass_sim:
   max_vel_y: 1.0
   max_vel_theta: 1.0
 
-  max_acc_x: 1.5
-  max_acc_y: 1.0
+  max_acc_x: 2.2
+  max_acc_y: 1.5
   max_acc_theta: 1.0
   
   friction: 0.01
@@ -81,10 +81,10 @@ high_level_controller:
 
 # catching_height: null
 
-## NAE
-model_dir: $(env NAE_DIR)/training_scripts/V-general-except-U-N-J-Q-O/models/V-3-1-PC3-general-except-U-N-J-Q-O-in30-out10_model
-model_epoch_idx: 30000 
-model_name: 'NAE'
+# ## NAE
+# model_dir: $(env NAE_DIR)/training_scripts/V-general-except-U-N-J-Q-O/models/V-3-1-PC3-general-except-U-N-J-Q-O-in30-out10_model
+# model_epoch_idx: 30000 
+# model_name: 'NAE'
 
 # ## NAE-ID
 # model_dir : $(env NAE_DIR)/training_scripts/V-general-except-U-N-J-Q-O/models/V-4-1-PC1-general-ONE-HOT-except-U-N-J-Q-O-in30-out10_model
@@ -96,10 +96,10 @@ model_name: 'NAE'
 # model_epoch_idx: best_model_ade 
 # model_name: 'LSTMencoder'
 
-# ## LSTMencoder-CLF
-# model_dir: '$(env NAE_DIR)/training_scripts/0-Phase-4/models/1LSTMEncoder/Vph4-v1-1-w1-PCNAIST-server-GEN-EXCEPT-U-N-J-Q-O-lstmENCODER-in30-out10_model'
-# model_epoch_idx: best_model_ade 
-# model_name: 'LSTMencoderCLFw11CLFlayer'
+## LSTMencoder-CLF
+model_dir: '$(env NAE_DIR)/training_scripts/0-Phase-4/models/1LSTMEncoder/Vph4-v1-1-w1-PCNAIST-server-GEN-EXCEPT-U-N-J-Q-O-lstmENCODER-in30-out10_model'
+model_epoch_idx: best_model_ade 
+model_name: 'LSTMencoderCLFw11CLFlayer'
 
 
 # ## Newton

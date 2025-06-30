@@ -21,11 +21,11 @@ point_mass_sim:
   max_vel_y: 1.0
   max_vel_theta: 1.0
 
-  max_acc_x: 2.2
-  max_acc_y: 1.5
+  max_acc_x: 1.5
+  max_acc_y: 1.0
   max_acc_theta: 1.0
   
-  friction: 0.01
+  friction: 0.05
 
 trajectory_predictor:
   predict_schedule_step: 2

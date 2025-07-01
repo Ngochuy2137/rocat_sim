@@ -448,6 +448,32 @@ def find_point_A(x_B, y_B, alpha_degree, d):
     y_A = y_B - d * math.sin(alpha_rad)
     return [x_A, y_A]
 
+
+def compute_init_catching_distance(T_flight, v_max, a_max, safety_factor=1.0):
+    """
+    Tính khoảng cách tối đa robot có thể di chuyển từ vị trí đứng yên
+    trong thời gian T_flight, với vận tốc và gia tốc tối đa cho trước.
+
+    Tham số:
+    - T_flight (float): thời gian bay của vật thể (giây)
+    - v_max (float): vận tốc tối đa của robot (m/s)
+    - a_max (float): gia tốc tối đa của robot (m/s^2)
+
+    Trả về:
+    - d_start (float): khoảng cách tối đa robot có thể đi được (mét)
+    """
+    t_acc = v_max / a_max  # thời gian cần để đạt đến vận tốc tối đa
+
+    if T_flight <= t_acc:
+        # Nếu chưa kịp đạt v_max → chỉ tăng tốc đều từ đứng yên
+        d_start = 0.5 * a_max * T_flight**2
+    else:
+        # Nếu đủ thời gian tăng tốc và chạy đều
+        d_start = 0.5 * a_max * t_acc**2 + v_max * (T_flight - t_acc)
+
+    d_start *= safety_factor  # Thêm hệ số an toàn nếu cần
+    return d_start
+
 if __name__ == "__main__":
     rospy.init_node("reset_robot_node")
     reset_robot()

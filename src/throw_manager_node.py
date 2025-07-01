@@ -21,7 +21,8 @@ from rocat_sim.src.utils.utils import (
     publish_points_2rviz,
     publish_special_point,
     find_point_A,
-    warn_beep
+    warn_beep,
+    compute_init_catching_distance
 )
 
 import subprocess
@@ -198,9 +199,10 @@ class ThrowManager:
         # trial_num_target = max(n, trial_num_target)
         # for traj_idx, traj in enumerate(self.data):
         for traj_idx in range(self.traj_id_start, trial_num_target):
-            # input('Press ENTER to continue to next trajectory')
             traj = self.data[traj_idx % n]
             data_idx = traj_idx % n
+            # input(f'Press ENTER to continue to next trajectory: trajectory id: {data_idx}')
+
             if rospy.is_shutdown():
                 break
             time_pass = (time.time() - time_start)/60
@@ -233,8 +235,6 @@ class ThrowManager:
                 global_printer.print_yellow("       Waiting for Impact checker reset")
                 rospy.sleep(1)
 
-            print(f'    Updated new catching height {catching_height} ->')
-            print(f'    Trajectory length: {len(traj)}')
             # input('Press ENTER to continue to next trajectory')
 
             # 4. Set robot to initial position
@@ -245,11 +245,20 @@ class ThrowManager:
             random_range_idx = random.randint(0, len(catch_ori_dev_deg_thre_ranges) - 1)
             catch_ori_dev_deg_thres_min = catch_ori_dev_deg_thre_ranges[random_range_idx][0]
             catch_ori_dev_deg_thres_max = catch_ori_dev_deg_thre_ranges[random_range_idx][1]
-            catch_dist = rospy.get_param('/rocat_sim_manager/catching_distance')
+            # catch_dist = rospy.get_param('/rocat_sim_manager/catching_distance')
+            v_robot_max = rospy.get_param('/point_mass_sim/max_vel_x')
+            a_robot_max = rospy.get_param('/point_mass_sim/max_acc_x')
+            safety_factor = rospy.get_param('/rocat_sim_manager/init_dist_safety_factor')
+            catch_dist = compute_init_catching_distance(T_flight=((len(traj)-35)/120), v_max=v_robot_max, a_max=a_robot_max, safety_factor=safety_factor)
             alpha = random.uniform(catch_ori_dev_deg_thres_min,
                                    catch_ori_dev_deg_thres_max)
             init_pos = find_point_A(real_catching_point_with_z_up[0], real_catching_point_with_z_up[1], alpha_degree=alpha,
                                     d=catch_dist)
+            global_printer.print_green('\n--------------------')
+            print(f'    Catching height: {catching_height}')
+            print(f'    Trajectory length: {len(traj)}')
+            print(f'    init cathing distance: {catch_dist:.2f} m')
+            print(f'        safety_factor: {safety_factor}')
 
             # input(f"Press ENTER to reset robot to init position {init_pos}")
             # wait for second before new run
@@ -354,7 +363,8 @@ if __name__ == '__main__':
       # cardboard         -> 
       # ring_frisbee      -> 
 
-    all_objects_list = ['boomerang', 'big_sized_plane', 'carpet', 'hat', 'ring_frisbee']
+    # all_objects_list = ['boomerang', 'big_sized_plane', 'carpet', 'hat', 'ring_frisbee']
+    all_objects_list = ['big_sized_plane']
 
     trial_num_target_per_obj = 100
     manager = ThrowManager()

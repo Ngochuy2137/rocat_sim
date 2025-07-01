@@ -60,7 +60,7 @@ impact_checker:
 high_level_controller:
   gait_type: 2
   rate: 50
-  control_tolerance_xy: 0.05
+  control_tolerance_xy: 0.025
   modify_z_up_goal: false
   modify_z_up_robot_pose: false
   dummy_run_time: 1.0

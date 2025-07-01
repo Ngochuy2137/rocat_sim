@@ -48,6 +48,7 @@ rocat_sim_manager:
   
 impact_checker:
   control_tolerance_xy:
+    - 0.2
     - 0.17
     - 0.15
     - 0.125
@@ -83,10 +84,10 @@ high_level_controller:
 
 # catching_height: null
 
-## NAE
-model_dir: $(env NAE_DIR)/training_scripts/V-general-except-U-N-J-Q-O/models/V-3-1-PC3-general-except-U-N-J-Q-O-in30-out10_model
-model_epoch_idx: 30000 
-model_name: 'NAE'
+# ## NAE
+# model_dir: $(env NAE_DIR)/training_scripts/V-general-except-U-N-J-Q-O/models/V-3-1-PC3-general-except-U-N-J-Q-O-in30-out10_model
+# model_epoch_idx: 30000 
+# model_name: 'NAE'
 
 # ## NAE-ID
 # model_dir : $(env NAE_DIR)/training_scripts/V-general-except-U-N-J-Q-O/models/V-4-1-PC1-general-ONE-HOT-except-U-N-J-Q-O-in30-out10_model
@@ -98,10 +99,10 @@ model_name: 'NAE'
 # model_epoch_idx: best_model_ade 
 # model_name: 'DFEwoLD'
 
-# ## LSTMencoder-CLF
-# model_dir: '$(env NAE_DIR)/training_scripts/0-Phase-4/models/1LSTMEncoder/Vph4-v1-1-w1-PCNAIST-server-GEN-EXCEPT-U-N-J-Q-O-lstmENCODER-in30-out10_model'
-# model_epoch_idx: best_model_ade 
-# model_name: 'DFE'
+## LSTMencoder-CLF
+model_dir: '$(env NAE_DIR)/training_scripts/0-Phase-4/models/1LSTMEncoder/Vph4-v1-1-w1-PCNAIST-server-GEN-EXCEPT-U-N-J-Q-O-lstmENCODER-in30-out10_model'
+model_epoch_idx: best_model_ade 
+model_name: 'DFE'
 
 
 # ## Newton

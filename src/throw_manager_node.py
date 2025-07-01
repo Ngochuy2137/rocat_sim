@@ -352,18 +352,8 @@ if __name__ == '__main__':
       # cardboard         -> 
       # ring_frisbee      -> 
 
-    # all_objects_list = [
-    #     'ball', 'big_sized_plane', 'boomerang', 'cardboard', 'ring_frisbee',
-    #     'cookie_box', 'water_bottle', 'paper_cup', 'noodle_cup', 'cap'
-    # ]
-    # all_objects_list = [
-    #     'hat', 'empty_can', 'basket', 'rain_visor', 'sand_can',
-    #     'empty_bottle', 'chip_star', 'carpet', 'styrofoam', 'soft_frisbee'
-    # ]
-    all_objects_list = [
-        'basket', 'big_sized_plane', 'boomerang', 'hat', 'soft_frisbee',
-        'cookie_box', 'water_bottle', 'paper_cup', 'noodle_cup', 'cap'
-    ]
+    all_objects_list = ['boomerang', 'big_sized_plane', 'carpet', 'hat', 'ring_frisbee']
+
     trial_num_target_per_obj = 100
     manager = ThrowManager()
     for object_name in all_objects_list:

@@ -30,7 +30,7 @@ point_mass_sim:
 trajectory_predictor:
   predict_schedule_step: 2
   ignore_first_predictions: 0
-  rate: 20
+  rate: 10
   pub_impact_point_with_z_up: true
   interpolate_raw_pos_data: false
 
@@ -94,12 +94,12 @@ high_level_controller:
 # ## LSTMencoder
 # model_dir: '$(env NAE_DIR)/training_scripts/0-Phase-4/models/1LSTMEncoder/Vph2-v0-1-PCNAIST-server-GEN-EXCEPT-U-N-J-Q-O-lstmENCODER-in30-out10_model'
 # model_epoch_idx: best_model_ade 
-# model_name: 'LSTMencoder'
+# model_name: 'DFEwoLD'
 
 ## LSTMencoder-CLF
 model_dir: '$(env NAE_DIR)/training_scripts/0-Phase-4/models/1LSTMEncoder/Vph4-v1-1-w1-PCNAIST-server-GEN-EXCEPT-U-N-J-Q-O-lstmENCODER-in30-out10_model'
 model_epoch_idx: best_model_ade 
-model_name: 'LSTMencoderCLFw11CLFlayer'
+model_name: 'DFE'
 
 
 # ## Newton

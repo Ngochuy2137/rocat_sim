@@ -40,10 +40,11 @@ rocat_sim_manager:
     trigger_n_thow_time_gap_sim: 0.15 # no meaning
   # catching_distance: 0.4
   # catching_orientation_dev_deg_thre_ranges: [[-15, 15], [170, 190]]
-  catching_orientation_dev_deg_thre_ranges: [[0, 0]]       #[[-10, 10]]
+  catching_orientation_dev_deg_thre_ranges: [[-180, 180]]       #[[-10, 10]]
   wait_time_b4_trigger_ctrl: 0.5    # no meaning
   wait_time_after_robot_reset: 0.5  # no meaning
-  init_dist_safety_factor: 1.0
+  init_dist_safety_factor: 0.7
+  init_dist_min_thres: 0.2
   
 impact_checker:
   control_tolerance_xy:
@@ -82,10 +83,10 @@ high_level_controller:
 
 # catching_height: null
 
-# ## NAE
-# model_dir: $(env NAE_DIR)/training_scripts/V-general-except-U-N-J-Q-O/models/V-3-1-PC3-general-except-U-N-J-Q-O-in30-out10_model
-# model_epoch_idx: 30000 
-# model_name: 'NAE'
+## NAE
+model_dir: $(env NAE_DIR)/training_scripts/V-general-except-U-N-J-Q-O/models/V-3-1-PC3-general-except-U-N-J-Q-O-in30-out10_model
+model_epoch_idx: 30000 
+model_name: 'NAE'
 
 # ## NAE-ID
 # model_dir : $(env NAE_DIR)/training_scripts/V-general-except-U-N-J-Q-O/models/V-4-1-PC1-general-ONE-HOT-except-U-N-J-Q-O-in30-out10_model
@@ -97,10 +98,10 @@ high_level_controller:
 # model_epoch_idx: best_model_ade 
 # model_name: 'DFEwoLD'
 
-## LSTMencoder-CLF
-model_dir: '$(env NAE_DIR)/training_scripts/0-Phase-4/models/1LSTMEncoder/Vph4-v1-1-w1-PCNAIST-server-GEN-EXCEPT-U-N-J-Q-O-lstmENCODER-in30-out10_model'
-model_epoch_idx: best_model_ade 
-model_name: 'DFE'
+# ## LSTMencoder-CLF
+# model_dir: '$(env NAE_DIR)/training_scripts/0-Phase-4/models/1LSTMEncoder/Vph4-v1-1-w1-PCNAIST-server-GEN-EXCEPT-U-N-J-Q-O-lstmENCODER-in30-out10_model'
+# model_epoch_idx: best_model_ade 
+# model_name: 'DFE'
 
 
 # ## Newton

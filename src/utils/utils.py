@@ -448,6 +448,43 @@ def find_point_A(x_B, y_B, alpha_degree, d):
     y_A = y_B - d * math.sin(alpha_rad)
     return [x_A, y_A]
 
+def compute_init_pose(x_goal: float,
+                      y_goal: float,
+                      alpha_deg: float,
+                      d: float,
+                      yaw_in_degrees: bool = True
+                      ) -> tuple:
+    """
+    Tính tọa độ khởi tạo và góc yaw để robot hướng thẳng về phía đích.
+
+    Tham số:
+      - x_goal, y_goal: tọa độ đích B trong hệ toạ độ world.
+      - alpha_deg: góc tia AB so với trục +X world (đơn vị độ).
+      - d: khoảng cách muốn đặt robot cách đích.
+      - yaw_in_degrees: nếu True, trả về yaw bằng độ; nếu False, trả về yaw bằng radian.
+
+    Trả về:
+      (x_init, y_init, yaw_init)
+    """
+
+    # Chuyển góc sang radian để tính cos/sin
+    alpha_rad = math.radians(alpha_deg)
+
+    # 1) Tọa độ A = điểm cách B một khoảng d theo góc alpha
+    x_init = x_goal - d * math.cos(alpha_rad)
+    y_init = y_goal - d * math.sin(alpha_rad)
+
+    # 2) Tính yaw sao cho hướng này quay thẳng về B
+    #    vector từ A đến B là (d*cos, d*sin), nên yaw = alpha
+    yaw_rad = alpha_rad
+
+    if yaw_in_degrees:
+        yaw_init = math.degrees(yaw_rad)
+    else:
+        yaw_init = yaw_rad
+
+    return x_init, y_init, yaw_init
+
 
 def compute_init_catching_distance(T_flight, v_max, a_max, safety_factor=1.0):
     """

@@ -378,9 +378,8 @@ if __name__ == '__main__':
       # cardboard         -> 
       # ring_frisbee      -> 
 
-    # all_objects_list = ['boomerang', 'big_sized_plane', 'carpet', 'hat', 'ring_frisbee']
-    all_objects_list = ['sand_can']
-
+    all_objects_list = ['boomerang', 'big_sized_plane', 'carpet', 'hat', 'ring_frisbee',
+                        'cookie_box', 'noodle_cup', 'paper_cup', 'pinwheel', 'small_sized_plane',]
     trial_num_target_per_obj = 100
     manager = ThrowManager()
     for object_name in all_objects_list:

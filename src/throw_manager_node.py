@@ -200,6 +200,7 @@ class ThrowManager:
         for traj_idx in range(self.traj_id_start, trial_num_target):
             # input('Press ENTER to continue to next trajectory')
             traj = self.data[traj_idx % n]
+            data_idx = traj_idx % n
             if rospy.is_shutdown():
                 break
             time_pass = (time.time() - time_start)/60
@@ -219,6 +220,7 @@ class ThrowManager:
             catching_height = real_catching_point_with_z_up[2]
             rospy.set_param('/catching_height', catching_height)    # height is y axis in this case
             rospy.set_param('/real_catching_point_with_z_up', real_catching_point_with_z_up)
+            rospy.set_param('/trajectory_idx', data_idx)
 
             # 3. Check if components are ready
             while not self.send_ask_if_robot_ready_srv():

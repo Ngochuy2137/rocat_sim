@@ -9,6 +9,7 @@ import json
 import rospy
 from visualization_msgs.msg import Marker, MarkerArray
 from geometry_msgs.msg import Point
+import random
 
 from python_utils.printer import Printer
 global_printer = Printer()
@@ -452,7 +453,8 @@ def compute_init_pose(x_goal: float,
                       y_goal: float,
                       alpha_deg: float,
                       d: float,
-                      yaw_in_degrees: bool = True
+                      yaw_in_degrees: bool = True,
+                      sample_within_circle: bool = False
                       ) -> tuple:
     """
     Tính tọa độ khởi tạo và góc yaw để robot hướng thẳng về phía đích.
@@ -466,7 +468,8 @@ def compute_init_pose(x_goal: float,
     Trả về:
       (x_init, y_init, yaw_init)
     """
-
+    if sample_within_circle:
+        d = random.uniform(0, d)
     # Chuyển góc sang radian để tính cos/sin
     alpha_rad = math.radians(alpha_deg)
 
@@ -486,7 +489,7 @@ def compute_init_pose(x_goal: float,
     return x_init, y_init, yaw_init
 
 
-def compute_init_catching_distance(T_flight, v_max, a_max, safety_factor=1.0):
+def compute_init_distance_by_flight_time(T_flight, v_max, a_max, safety_factor=1.0):
     """
     Tính khoảng cách tối đa robot có thể di chuyển từ vị trí đứng yên
     trong thời gian T_flight, với vận tốc và gia tốc tối đa cho trước.

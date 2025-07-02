@@ -22,7 +22,7 @@ from rocat_sim.src.utils.utils import (
     publish_special_point,
     find_point_A,
     warn_beep,
-    compute_init_catching_distance,
+    compute_init_distance_by_flight_time,
     compute_init_pose
 )
 
@@ -197,18 +197,25 @@ class ThrowManager:
 
     def publish_trajectories(self, time_start, trial_num_target):
         n = len(self.data)
-        # trial_num_target = max(n, trial_num_target)
-        # for traj_idx, traj in enumerate(self.data):
-        for traj_idx in range(self.traj_id_start, trial_num_target):
-            traj = self.data[traj_idx % n]
-            data_idx = traj_idx % n
-            # input(f'Press ENTER to continue to next trajectory: trajectory id: {data_idx}')
-
+        trial_count = 0
+        traj_idx = 0
+        min_trajectory_len_thres = rospy.get_param('/rocat_sim_manager/min_trajectory_len_thres')
+        while trial_count < trial_num_target:
             if rospy.is_shutdown():
                 break
+            # input(f'Press ENTER to continue')
             time_pass = (time.time() - time_start)/60
             time_left_predict = time_pass * (trial_num_target - traj_idx - 1) / (traj_idx + 1)
-            global_printer.print_blue(f"\n{'='*25} TRIAL #{traj_idx} - time: {time_pass:.3f} - time left {time_left_predict:.3f} {'='*25}", background=True)
+            global_printer.print_blue(f"\n{'='*25} TRIAL #{trial_count} - time: {time_pass:.3f} - time left {time_left_predict:.3f} - trajectory id: {traj_idx} {'='*25} ", background=True)
+
+            traj = self.data[traj_idx % n]
+            traj_idx += 1
+            if len(traj) < min_trajectory_len_thres:
+                global_printer.print_yellow(f'Skip trajectory {traj_idx-1} with length {len(traj)} < {min_trajectory_len_thres}')
+                continue
+            
+            trial_count += 1    # only increase trial count if trajectory is valid => to keep the number of trials to trial_num_target
+
             # 1. Check trajectory shape
             if traj.shape[1] != 4:
                 raise ValueError('Trajectory point must have 4 dimensions (t, x, y, z)')
@@ -223,7 +230,7 @@ class ThrowManager:
             catching_height = real_catching_point_with_z_up[2]
             rospy.set_param('/catching_height', catching_height)    # height is y axis in this case
             rospy.set_param('/real_catching_point_with_z_up', real_catching_point_with_z_up)
-            rospy.set_param('/trajectory_idx', data_idx)
+            rospy.set_param('/trajectory_idx', traj_idx)
 
             # 3. Check if components are ready
             while not self.send_ask_if_robot_ready_srv():
@@ -246,11 +253,14 @@ class ThrowManager:
             # catch_dist = rospy.get_param('/rocat_sim_manager/catching_distance')
             v_robot_max = rospy.get_param('/point_mass_sim/max_vel_x')
             a_robot_max = rospy.get_param('/point_mass_sim/max_acc_x')
-            safety_factor = rospy.get_param('/rocat_sim_manager/init_dist_safety_factor')
-            init_dist_min_thres = rospy.get_param('/rocat_sim_manager/init_dist_min_thres')
-            catch_dist = compute_init_catching_distance(T_flight=((len(traj)-35)/120), v_max=v_robot_max, a_max=a_robot_max, safety_factor=safety_factor)
-            catch_dist = max(catch_dist, init_dist_min_thres)  # ensure catch_dist is at least 0.5 m
-            
+            if rospy.get_param('/rocat_sim_manager/init_dist_by_flight_time/enable'):
+                safety_factor = rospy.get_param('/rocat_sim_manager/init_dist_by_flight_time/init_dist_safety_factor')
+                catch_dist = compute_init_distance_by_flight_time(T_flight=((len(traj)-35)/120), v_max=v_robot_max, a_max=a_robot_max, safety_factor=safety_factor)
+                init_dist_min_thres = rospy.get_param('/rocat_sim_manager/init_dist_by_flight_time/init_dist_min_thres')
+                catch_dist = max(catch_dist, init_dist_min_thres)  # ensure catch_dist is at least 0.5 m
+            else:
+                catch_dist = rospy.get_param('/rocat_sim_manager/init_catching_distance_hardcoded')
+
             catch_ori_dev_deg_thre_ranges = rospy.get_param('/rocat_sim_manager/catching_orientation_dev_deg_thre_ranges')
             random_range_idx = random.randint(0, len(catch_ori_dev_deg_thre_ranges) - 1)
             catch_ori_dev_deg_thres_min = catch_ori_dev_deg_thre_ranges[random_range_idx][0]
@@ -258,10 +268,6 @@ class ThrowManager:
             alpha = random.uniform(catch_ori_dev_deg_thres_min,
                                    catch_ori_dev_deg_thres_max)
             
-
-
-
-
             # init_pos = find_point_A(real_catching_point_with_z_up[0], real_catching_point_with_z_up[1], alpha_degree=alpha,
             #                         d=catch_dist)
             # # Reset robot to initial position
@@ -272,7 +278,8 @@ class ThrowManager:
 
 
             x_goal, y_goal = real_catching_point_with_z_up[0], real_catching_point_with_z_up[1]
-            x_init, y_init, yaw_init = compute_init_pose(x_goal, y_goal, alpha, catch_dist)
+            sample_within_circle = rospy.get_param('/rocat_sim_manager/sample_within_circle')
+            x_init, y_init, yaw_init = compute_init_pose(x_goal, y_goal, alpha, catch_dist, sample_within_circle=sample_within_circle)
             init_pos = [x_init, y_init]
 
             # print('alpha:', alpha, 'yaw_init:', yaw_init); input()
@@ -282,7 +289,11 @@ class ThrowManager:
             print(f'    Catching height: {catching_height}')
             print(f'    Trajectory length: {len(traj)}')
             print(f'    init cathing distance: {catch_dist:.2f} m - traj length: {len(traj)}')
-            print(f'        safety_factor: {safety_factor}')
+            print('     sample_within_circle:', sample_within_circle)
+            if sample_within_circle:
+                real_catch_dist = np.linalg.norm(np.array(init_pos) - np.array(real_catching_point_with_z_up[:2]))
+                print('         real_catch_dist:', real_catch_dist)
+
             # wait for second before new run
             rospy.sleep(self.wait_time_after_robot_reset)
 

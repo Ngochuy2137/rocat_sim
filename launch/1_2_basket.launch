@@ -1,0 +1,7 @@
+<launch>
+    <include file="$(find rocat_sim)/launch/0_param_pub.launch" />
+
+    <!-- Launch rviz at -d /home/huynn/huynn_ws/robot_catching_ws/rocat_ws/src/rocat_sim/rviz/rviz.rviz -->
+    <node pkg="rocat_sim" type="basket_pub.py" name="basket_pub" output="screen"/>
+    
+</launch>

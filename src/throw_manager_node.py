@@ -357,7 +357,7 @@ class ThrowManager:
         self.trigger_impact_checker_client = rospy.ServiceProxy('/trigger_impact_checker_srv', SetBool)
 
         # 2. Robot controller
-        rospy.wait_for_service('/ask_if_robot_is_ready_srv', timeout=10)
+        rospy.wait_for_service('/ask_if_robot_is_ready_srv', timeout=20)
         self.ask_robot_controller_client = rospy.ServiceProxy('/ask_if_robot_is_ready_srv', SetBool)
 
         rospy.wait_for_service('/stop_control_session_srv', timeout=10)
@@ -390,7 +390,7 @@ if __name__ == '__main__':
       # ring_frisbee      -> 
 
     all_objects_list = ['boomerang', 'big_sized_plane', 'carpet', 'hat', 'ring_frisbee',
-                        'cookie_box', 'noodle_cup', 'paper_cup', 'pinwheel', 'small_sized_plane',]
+                        'cookie_box', 'noodle_cup', 'paper_cup', 'pinwheel', 'small_sized_plane', 'foam_cushion']
     trial_num_target_per_obj = 100
     manager = ThrowManager()
     for object_name in all_objects_list:

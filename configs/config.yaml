@@ -90,11 +90,17 @@ high_level_controller:
 
 
 
-# ====================  Newton  ====================
+# # ====================  Newton  ====================
 # ## Newton
 # model_dir: '$(env NAE_DIR)/training_scripts/0-Phase-4/models/1LSTMEncoder/Vph4-v1-1-w1-PCNAIST-server-GEN-EXCEPT-U-N-J-Q-O-lstmENCODER-in30-out10_model'
 # model_epoch_idx: best_model_ade 
 # model_name: 'Newton'
+
+# # ====================  SVR  ====================
+model_dir: '$(env SVR_DIR)/training_scripts/4-phase-4-timeseries/models/singular/ball-24-07-2025_03-23-27_inseq30_outpred10'
+model_epoch_idx: ""
+model_name: 'SVR'
+model_training_type: 'SVR'
 
 # ====================  Sliding Window Models  ====================
 # ## NAE
@@ -122,23 +128,8 @@ high_level_controller:
 # model_training_type: 'sliding_window' # 'free_running' or 'sliding_window'
 
 # ====================  Free Running Models  ====================
-## DFE-W1 free running
-model_dir: '$(env NAE_DIR)/training_scripts/0-phase-7/1-GEN/generalized_W7_fine_tune/models/V-ph7-1-DFEIEloss-v1-1-NAISTSER-GEN-LR_3e-05-W7_1_0-Pr2Imp-True-NByS-False-in30-outNone_model/model_17-07-2025_20-00-56_hiddensize128_inseq30_outpredNone'
-model_epoch_idx: best_model_fe 
-model_name: 'DFEIEW1'
-model_training_type: 'free_running' # 'free_running' or 'sliding_window'
-
-# object_name: cap     
-# UNSEEN: 
-      # cookie_box        -> 
-      # water_bottle      -> 
-      # paper_cup         -> 
-      # noodle_cup        -> 
-      # cap               -> 
-# SEEN:
-      # ball              -> 
-      # big_sized_plane   -> 
-      # boomerang         ->   
-      # cardboard         -> 
-      # ring_frisbee      -> 
-                          
+# ## DFE-W1 free running
+# model_dir: '$(env NAE_DIR)/training_scripts/0-phase-7/1-GEN/generalized_W7_fine_tune/models/V-ph7-1-DFEIEloss-v1-1-NAISTSER-GEN-LR_3e-05-W7_1_0-Pr2Imp-True-NByS-False-in30-outNone_model/model_17-07-2025_20-00-56_hiddensize128_inseq30_outpredNone'
+# model_epoch_idx: best_model_fe 
+# model_name: 'DFEIEW1'
+# model_training_type: 'free_running' # 'free_running' or 'sliding_window'

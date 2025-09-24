@@ -81,16 +81,6 @@ object_name: 'real_flying_object'
 # #===================  SECTION: prediction model  ====================
 # #====================================================================
 
-# # ====================  Newton  ====================
-# # Newton
-# model_name: 'Newton'
-# nt_input_len: 30
-
-# # # ====================  SVR  ====================
-# model_dir: ''
-# model_epoch_idx: ""
-# model_name: 'SVR'
-
 # # ====================  NAE  ====================
 # model_dir: ''
 # model_epoch_idx: 30000 
@@ -108,34 +98,3 @@ model_dir: ''
 model_epoch_idx: best_model_fe 
 model_name: 'DIPP-NAE'
 model_training_type: 'free_running' # 'free_running' or 'sliding_window'
-
-# # ====================  DIPP-NAE-FC  ====================
-# model_dir: ''
-# model_epoch_idx: best_model_fe 
-# model_name: 'DIPP-NAE-FC'
-# model_training_type: 'free_running' # 'free_running' or 'sliding_window'
-
-# # ====================  DIPP-NAE-TR  ====================
-# model_dir: ''
-# model_epoch_idx: best_model_fe 
-# model_name: 'DIPP-NAE-TR'
-# model_training_type: 'free_running' # 'free_running' or 'sliding_window'
-
-# # ====================  DIPP-DPE  ====================
-# model_dir: ''
-# model_epoch_idx: 'best_model_fe'     # 'best_model_fe' or 'best_model_ade'
-# model_name: 'DIPP-DPE'
-# model_training_type: 'naive'  # 'free_running' or 'sliding_window' or 'naive'
-
-# # ====================  DIPP-DPE-FC  ====================
-# model_dir: ''
-# model_epoch_idx: 'best_model_fe'     # 'best_model_fe' or 'best_model_ade'
-# model_name: 'DIPP-DPE-FC'
-# model_training_type: 'naive'  # 'free_running' or 'sliding_window' or 'naive'
-
-# # ====================  DIPP-DPE-TR  ====================
-# model_dir: ''
-# model_epoch_idx: 'best_model_fe'     # 'best_model_fe' or 'best_model_ade'
-# model_name: 'DIPP-DPE-TR'
-# model_training_type: 'naive'  # 'free_running' or 'sliding_window' or 'naive'
-                          

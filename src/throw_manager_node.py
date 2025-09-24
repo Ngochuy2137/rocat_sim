@@ -198,20 +198,20 @@ class ThrowManager:
     def publish_trajectories(self, time_start, trial_num_target):
         n = len(self.data)
         trial_count = 0
-        traj_idx = 0
+        trial_idx = 0
         min_trajectory_len_thres = rospy.get_param('/rocat_sim_manager/min_trajectory_len_thres')
         while trial_count < trial_num_target:
             if rospy.is_shutdown():
                 break
             # input(f'Press ENTER to continue')
             time_pass = (time.time() - time_start)/60
-            time_left_predict = time_pass * (trial_num_target - traj_idx - 1) / (traj_idx + 1)
-            global_printer.print_blue(f"\n{'='*25} TRIAL #{trial_count} - time: {time_pass:.3f} - time left {time_left_predict:.3f} - trajectory id: {traj_idx} {'='*25} ", background=True)
+            time_left_predict = time_pass * (trial_num_target - trial_idx - 1) / (trial_idx + 1)
+            global_printer.print_blue(f"\n{'='*25} TRIAL #{trial_count} - time: {time_pass:.3f} - time left {time_left_predict:.3f} - trajectory id: {trial_idx} {'='*25} ", background=True)
 
-            traj = self.data[traj_idx % n]
-            traj_idx += 1
+            traj = self.data[trial_idx % n]
+            trial_idx += 1
             if len(traj) < min_trajectory_len_thres:
-                global_printer.print_yellow(f'Skip trajectory {traj_idx-1} with length {len(traj)} < {min_trajectory_len_thres}')
+                global_printer.print_yellow(f'Skip trajectory {trial_idx-1} with length {len(traj)} < {min_trajectory_len_thres}')
                 continue
             
             trial_count += 1    # only increase trial count if trajectory is valid => to keep the number of trials to trial_num_target
@@ -230,7 +230,7 @@ class ThrowManager:
             catching_height = real_catching_point_with_z_up[2]
             rospy.set_param('/catching_height', catching_height)    # height is y axis in this case
             rospy.set_param('/real_catching_point_with_z_up', real_catching_point_with_z_up)
-            rospy.set_param('/trajectory_idx', traj_idx)
+            rospy.set_param('/trajectory_idx', trial_idx)
 
             # 3. Check if components are ready
             while not self.send_ask_if_robot_ready_srv():
@@ -376,21 +376,15 @@ class ThrowManager:
             pass
 
 if __name__ == '__main__':
-    # UNSEEN: 
-      # cookie_box        -> 
-      # water_bottle      -> 
-      # paper_cup         -> 
-      # noodle_cup        -> 
-      # cap               -> 
-    # SEEN:
-      # ball              -> 
-      # big_sized_plane   -> 
-      # boomerang         ->   
-      # cardboard         -> 
-      # ring_frisbee      -> 
-
-    all_objects_list = ['big_sized_plane', 'boomerang', 'carpet', 'hat', 'ring_frisbee',
-                        'cap', 'noodle_cup', 'paper_cup', 'pinwheel', 'small_sized_plane']
+    # all_objects_list = ['big_sized_plane', 'boomerang', 'carpet', 'hat', 'ring_frisbee',
+    #                     'noodle_cup', 'paper_cup', 'small_sized_plane', 'fan', 'pinwheel']
+    
+    # get param
+    all_objects_list = rospy.get_param('thrown_objects_list')
+    if len(all_objects_list) == 0:
+        raise ValueError('thrown_objects_list is empty, please set it in the param server')
+    
+    print('All objects to throw:', all_objects_list)
     trial_num_target_per_obj = 100
     manager = ThrowManager()
     for object_name in all_objects_list:

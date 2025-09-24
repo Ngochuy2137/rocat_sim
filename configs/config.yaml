@@ -43,10 +43,10 @@ rocat_sim_manager:
     init_dist_min_thres: 0.2
     init_dist_safety_factor: 0.7
   # if init_dist_by_flight_time.enable is false
-  init_catching_distance_hardcoded: 0.3 # Null
+  init_catching_distance_hardcoded: 0.5 # Null
   sample_within_circle: true
 
-  min_trajectory_len_thres: 100           # skip if trajectory length is less than this value
+  min_trajectory_len_thres: 0           # skip if trajectory length is less than this value
   # catching_distance: 0.4
   # catching_orientation_dev_deg_thre_ranges: [[-15, 15], [170, 190]]
   catching_orientation_dev_deg_thre_ranges: [[-180, 180]]       #[[-10, 10]]
@@ -91,20 +91,18 @@ high_level_controller:
 
 
 # # ====================  Newton  ====================
-# ## Newton
-# model_dir: '$(env NAE_DIR)/training_scripts/0-Phase-4/models/1LSTMEncoder/Vph4-v1-1-w1-PCNAIST-server-GEN-EXCEPT-U-N-J-Q-O-lstmENCODER-in30-out10_model'
-# model_epoch_idx: best_model_ade 
+# # Newton
 # model_name: 'Newton'
+# nt_input_len: 30
 
-# # ====================  SVR  ====================
-model_dir: '$(env SVR_DIR)/training_scripts/4-phase-4-timeseries/models/singular/ball-24-07-2025_03-23-27_inseq30_outpred10'
-model_epoch_idx: ""
-model_name: 'SVR'
-model_training_type: 'SVR'
+# # # ====================  SVR  ====================
+# model_dir: '$(env ROCAT_MODELS_DIR)/SVR_models/V-SVR-model_24-07-2025_19-29-01_inseq30_outpred10'
+# model_epoch_idx: ""
+# model_name: 'SVR'
 
-# ====================  Sliding Window Models  ====================
+# # ====================  Sliding Window Models  ====================
 # ## NAE
-# model_dir: $(env NAE_DIR)/training_scripts/V-general-except-U-N-J-Q-O/models/V-3-1-PC3-general-except-U-N-J-Q-O-in30-out10_model
+# model_dir: $(env ROCAT_MODELS_DIR)/NAE_models/V-3-1-NAE-in30-out10_model
 # model_epoch_idx: 30000 
 # model_name: 'NAE'
 # model_training_type: 'sliding_window' # 'free_running' or 'sliding_window'
@@ -115,21 +113,53 @@ model_training_type: 'SVR'
 # model_name : 'NAE-ID'
 # model_training_type: 'sliding_window' # 'free_running' or 'sliding_window'
 
-# ## LSTMencoder
-# model_dir: '$(env NAE_DIR)/training_scripts/0-Phase-4/models/1LSTMEncoder/Vph2-v0-1-PCNAIST-server-GEN-EXCEPT-U-N-J-Q-O-lstmENCODER-in30-out10_model'
+# ## DFEwoIPA
+# model_dir: '$(env ROCAT_MODELS_DIR)/DFEwoCLF_models/Vph2-v0-1-PCNAIST-server-GEN-EXCEPT-U-N-J-Q-O-lstmENCODER-in30-out10_model'
 # model_epoch_idx: best_model_ade 
-# model_name: 'DFEwoLD'
+# model_name: 'DFEwoIPA'
 # model_training_type: 'sliding_window' # 'free_running' or 'sliding_window'
 
-# ## LSTMencoder-CLF
-# model_dir: '$(env NAE_DIR)/training_scripts/0-Phase-4/models/1LSTMEncoder/Vph4-v1-1-w1-PCNAIST-server-GEN-EXCEPT-U-N-J-Q-O-lstmENCODER-in30-out10_model'
-# model_epoch_idx: best_model_ade 
-# model_name: 'DFE'
-# model_training_type: 'sliding_window' # 'free_running' or 'sliding_window'
-
-# ====================  Free Running Models  ====================
-# ## DFE-W1 free running
-# model_dir: '$(env NAE_DIR)/training_scripts/0-phase-7/1-GEN/generalized_W7_fine_tune/models/V-ph7-1-DFEIEloss-v1-1-NAISTSER-GEN-LR_3e-05-W7_1_0-Pr2Imp-True-NByS-False-in30-outNone_model/model_17-07-2025_20-00-56_hiddensize128_inseq30_outpredNone'
+# ## DFE
+# model_dir: '$(env ROCAT_MODELS_DIR)/DFE_models/V-ph7-1-DFEIEloss-v1-1-NAISTSER-GEN-LR_3e-05-W7_1_0-Pr2Imp-True-NByS-False-in30-outNone_model'
 # model_epoch_idx: best_model_fe 
-# model_name: 'DFEIEW1'
+# model_name: 'DFE'
 # model_training_type: 'free_running' # 'free_running' or 'sliding_window'
+
+# ## FC-IPA
+# model_dir: '$(env ROCAT_MODELS_DIR)/FC_IPA_models/V-ph7-0-NAEv1-0-NAISTSER-GEN-LR_3e-05-W7_0_0-Pr2Imp-True-NByS-False-in30-outNone_model/model_17-07-2025_20-04-03_hiddensize128_inseq30_outpredNone'
+# model_epoch_idx: best_model_fe 
+# model_name: 'FC-IPA'
+# model_training_type: 'free_running' # 'free_running' or 'sliding_window'
+
+# ## TF2-IPA
+# model_dir: '$(env ROCAT_MODELS_DIR)/TF2-IPA/830-TF2-LSTM-IPA/V8300p3-TF2-LSTM-IPA-Sampling23-in30-None-LR_3e-05-W7_1_0-Pr2Imp-False-NByS-False-in30-outNone_model'
+# model_epoch_idx: best_model_fe 
+# model_name: 'TF2-IPA'
+# model_training_type: 'free_running' # 'free_running' or 'sliding_window'
+
+# # ====================  NAIVE Models  ====================
+## LSTM encoder
+# model_dir: '/home/huynn/huynn_ws/trajectory_prediction/nae_static/rocat_trajectory_prediction_models/NAIVE_models/V10-3-LSTM-LSTM-naive-slide-input-in30-None-LR_3e-05-in30-outNone_model'
+# model_epoch_idx: 'best_model_fe'     # 'best_model_fe' or 'best_model_ade'
+# model_name: 'NAIVE_LSTMenc_sliding_input'
+# model_training_type: 'naive'  # 'free_running' or 'sliding_window' or 'naive'
+
+## FC encoder
+model_dir: '/home/huynn/huynn_ws/trajectory_prediction/nae_static/rocat_trajectory_prediction_models/NAIVE_models/V10-2-FC-LSTM-naive-slide-input-in30-None-LR_3e-05-in30-outNone_model'
+model_epoch_idx: 'best_model_fe'     # 'best_model_fe' or 'best_model_ade'
+model_name: 'NAIVE_FCenc_sliding_input'
+model_training_type: 'naive'  # 'free_running' or 'sliding_window' or 'naive'
+
+
+## Thrown object list
+thrown_objects_list:
+  - 'big_sized_plane'
+  - 'boomerang'
+  - 'carpet'
+  - 'hat'
+  - 'ring_frisbee'
+  - 'noodle_cup'
+  - 'paper_cup'
+  - 'small_sized_plane'
+  - 'fan'
+  - 'pinwheel'

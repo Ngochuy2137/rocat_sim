@@ -2,8 +2,11 @@
     <include file="$(find rocat_sim)/launch/0_param_pub.launch" />
 
     <!-- Controller -->
-    <node pkg="unitree_navigation" type="pid_based_controller_node_sim.py" name="go1_control_node_sim" output="screen" >
+    <!-- <node pkg="unitree_navigation" type="pid_based_controller_node_sim.py" name="go1_control_node_sim" output="screen" > -->
         <!-- <remap from="NAE/impact_point" to="/move_base_simple/goal"/> -->
-    </node>
+    <!-- </node> -->
+
+    <node pkg="rocat_sim" type="pid_based_controller_node_sim.py" name="go1_control_node_sim" output="screen" />
+
 </launch>
 

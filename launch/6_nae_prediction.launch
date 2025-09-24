@@ -1,4 +1,6 @@
 <launch>
+    <rosparam file="$(find rocat_sim)/configs/config.yaml" command="load"/>
+
     <!-- NAE prediction -->
     <node pkg="nae_online_prediction" type="online_predict_node_sim.py" name="online_predict_node_sim" output="screen"  />
 

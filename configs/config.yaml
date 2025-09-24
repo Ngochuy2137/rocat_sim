@@ -20,12 +20,12 @@ catching_height_real: 0.63
 
 trajectory_predictor:
   predict_schedule_step: 2
-  ignore_first_predictions: 0
+  ignore_first_predictions: 2
   rate: 20
   pub_impact_point_with_z_up: true
   # zone to collect data from mocap
-  throw_active_range_x: [-2.0, 100]
-  throw_active_range_z: [-1000, 1000]
+  throw_active_range_x: [-2.5, 100]
+  throw_active_range_z: [-1000, 1000] # no need to limit z for real robot
   interpolate_raw_pos_data: true
 
 rocat_sim_manager:
@@ -34,7 +34,7 @@ rocat_sim_manager:
   # catching_distance: 0.6
   # catching_orientation_dev_deg_thres: 20
   # For real
-  real_trigger_threshold_x: &thr -2.5
+  real_trigger_threshold_x: &thr -3.0
   
 impact_checker:
   control_tolerance_xy:
@@ -75,27 +75,67 @@ high_level_controller:
 
 
 # catching_height: null
+object_name: 'real_flying_object'
 
-## NAE
-model_dir: '/home/server-huynn/workspace/robot_catching_project/experiment/nae_static/training_scripts/V-general-except-U-N-J-Q-O/models/V-3-1-PC3-general-except-U-N-J-Q-O-in30-out10_model'
-model_epoch_idx: 30000 
-model_name: 'NAE'
+# #====================================================================
+# #===================  SECTION: prediction model  ====================
+# #====================================================================
 
-# ## NAE-ID
-# model_dir : '/home/huynn/huynn_ws/trajectory_prediction/nae_static/training_scripts/V-general-except-U-N-J-Q-O/models/V-4-1-PC1-general-ONE-HOT-except-U-N-J-Q-O-in30-out10_model'
-# model_epoch_idx : 29999
-# model_name : 'NAE-ID'
+# # ====================  Newton  ====================
+# # Newton
+# model_name: 'Newton'
+# nt_input_len: 30
 
-# ## LSTMencoder
-# model_dir: '/home/server-huynn/workspace/robot_catching_project/experiment/nae_static/training_scripts/0-Phase-4/models/1LSTMEncoder/Vph2-v0-1-PCNAIST-server-GEN-EXCEPT-U-N-J-Q-O-lstmENCODER-in30-out10_model'
+# # # ====================  SVR  ====================
+# model_dir: ''
+# model_epoch_idx: ""
+# model_name: 'SVR'
+
+# # ====================  NAE  ====================
+# model_dir: ''
+# model_epoch_idx: 30000 
+# model_name: 'NAE'
+# model_training_type: 'sliding_window' # 'free_running' or 'sliding_window'
+
+# # ====================  DFE-RSJ  ====================
+# model_dir: ''
 # model_epoch_idx: best_model_ade 
-# model_name: 'LSTMencoder'
+# model_name: 'DFE-RSJ'
+# model_training_type: 'sliding_window' # 'free_running' or 'sliding_window'
 
-# ## LSTMencoder-CLF
-# model_dir: '/home/server-huynn/workspace/robot_catching_project/experiment/rocat_ws/src/rocat_sim/models/Vph4-v1-1-w1-PCNAIST-server-GEN-EXCEPT-U-N-J-Q-O-lstmENCODER-in30-out10_model'
-# model_epoch_idx: best_model_ade 
-# model_name: 'LSTMencoder-CLF-w1-1CLFlayer'
+# ====================  DIPP-NAE  ====================
+model_dir: ''
+model_epoch_idx: best_model_fe 
+model_name: 'DIPP-NAE'
+model_training_type: 'free_running' # 'free_running' or 'sliding_window'
 
-object_name: boomerang    # cookie_box water_bottle paper_cup noodle_cup cap
-                          # ball big_sized_plane boomerang cardboard ring_frisbee
+# # ====================  DIPP-NAE-FC  ====================
+# model_dir: ''
+# model_epoch_idx: best_model_fe 
+# model_name: 'DIPP-NAE-FC'
+# model_training_type: 'free_running' # 'free_running' or 'sliding_window'
+
+# # ====================  DIPP-NAE-TR  ====================
+# model_dir: ''
+# model_epoch_idx: best_model_fe 
+# model_name: 'DIPP-NAE-TR'
+# model_training_type: 'free_running' # 'free_running' or 'sliding_window'
+
+# # ====================  DIPP-DPE  ====================
+# model_dir: ''
+# model_epoch_idx: 'best_model_fe'     # 'best_model_fe' or 'best_model_ade'
+# model_name: 'DIPP-DPE'
+# model_training_type: 'naive'  # 'free_running' or 'sliding_window' or 'naive'
+
+# # ====================  DIPP-DPE-FC  ====================
+# model_dir: ''
+# model_epoch_idx: 'best_model_fe'     # 'best_model_fe' or 'best_model_ade'
+# model_name: 'DIPP-DPE-FC'
+# model_training_type: 'naive'  # 'free_running' or 'sliding_window' or 'naive'
+
+# # ====================  DIPP-DPE-TR  ====================
+# model_dir: ''
+# model_epoch_idx: 'best_model_fe'     # 'best_model_fe' or 'best_model_ade'
+# model_name: 'DIPP-DPE-TR'
+# model_training_type: 'naive'  # 'free_running' or 'sliding_window' or 'naive'
                           

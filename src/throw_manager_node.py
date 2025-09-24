@@ -218,7 +218,10 @@ class ThrowManager:
                 rate.sleep()
             flying_time = rospy.Time.now() - trigger_time
             rospy.sleep(0.1) 
-            global_printer.print_green(f'Object is on ground, stop catching session ... -> Flying time: {flying_time.to_sec()} \n\n')
+            global_printer.print_green(f'Stop session [{self.real_object_pose.pose.position.x:.3f}, {self.real_object_pose.pose.position.y:.3f}, {self.real_object_pose.pose.position.z:.3f}]')
+            print(f'     Object height is below catching height ({self.real_object_pose.pose.position.z:.3f}):  ', self.real_object_pose.pose.position.z < self.catching_height_real)
+            print(f'     Flight is too long ({flying_time.to_sec()}):    ', flying_time < rospy.Duration(self.max_session_time))
+            print('\n\n')
             self.send_stop_control_session_srv()
             self.send_stop_prediction_session_srv()
             # singer.beep(duration=1, freq=750)
